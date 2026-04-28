@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -147,84 +147,91 @@ public class LoginDomainService(
         CancellationToken cancellationToken
     )
     {
-        //读取json
-        var path = hostingEnvironment.ContentRootPath;
-        var indexOfBin = path.LastIndexOf("bin");
-        if (indexOfBin != -1)
+        try
         {
-            path = path[..indexOfBin];
-        }
-        if (string.Equals(configuration["PlatformType"], "Web", StringComparison.OrdinalIgnoreCase))
-        {
-            path = Path.Combine(path, "config");
-        }
-        var fileProvider = new PhysicalFileProvider(path);
-        IFileInfo fileInfo = fileProvider.GetFileInfo("cookies.json");
-        logger.LogInformation("目标json地址：{path}", fileInfo.PhysicalPath);
+            var path = hostingEnvironment.ContentRootPath;
+            
+            if (string.Equals(configuration["PlatformType"], "Web", StringComparison.OrdinalIgnoreCase))
+            {
+                path = Path.Combine(path, "config");
+            }
+            
+            Directory.CreateDirectory(path);
+            
+            var cookieFilePath = Path.Combine(path, "cookies.json");
+            logger.LogInformation("目标json地址：{path}", cookieFilePath);
 
-        if (!fileInfo.Exists)
-        {
-            await using var stream = File.Create(fileInfo.PhysicalPath!);
-            await using var sw = new StreamWriter(stream);
-            await sw.WriteAsync($"{{{Environment.NewLine}}}");
-        }
+            if (!File.Exists(cookieFilePath))
+            {
+                await using var stream = File.Create(cookieFilePath);
+                await using var sw = new StreamWriter(stream);
+                await sw.WriteAsync($"{{{Environment.NewLine}}}");
+            }
 
-        string json;
-        await using (var stream = new FileStream(fileInfo.PhysicalPath!, FileMode.Open))
-        {
-            using var reader = new StreamReader(stream);
-            json = await reader.ReadToEndAsync();
-        }
-        var lines = json.Split(Environment.NewLine).ToList();
+            string json;
+            await using (var stream = new FileStream(cookieFilePath, FileMode.Open, FileAccess.ReadWrite))
+            {
+                using var reader = new StreamReader(stream);
+                json = await reader.ReadToEndAsync();
+            }
+            var lines = json.Split(Environment.NewLine).ToList();
 
-        var indexOfCkConfigKey = lines.FindIndex(x =>
-            x.TrimStart().StartsWith("\"BiliBiliCookies\"")
-        );
-        if (indexOfCkConfigKey == -1)
-        {
-            logger.LogInformation("未配置过cookie，初始化并新增");
+            var indexOfCkConfigKey = lines.FindIndex(x =>
+                x.TrimStart().StartsWith("\"BiliBiliCookies\"")
+            );
+            if (indexOfCkConfigKey == -1)
+            {
+                logger.LogInformation("未配置过cookie，初始化并新增");
 
-            var indexOfInsert = lines.FindIndex(x => x.TrimStart().StartsWith("{"));
-            lines.InsertRange(
-                indexOfInsert + 1,
-                new List<string>()
-                {
-                    "  \"BiliBiliCookies\":[",
-                    $@"    ""{ckInfo.CookieStr}"",",
-                    "  ],",
-                }
+                var indexOfInsert = lines.FindIndex(x => x.TrimStart().StartsWith("{"));
+                lines.InsertRange(
+                    indexOfInsert + 1,
+                    new List<string>()
+                    {
+                        "  \"BiliBiliCookies\":[",
+                        $@"    ""{ckInfo.CookieStr}"",",
+                        "  ],",
+                    }
+                );
+
+                await SaveJson(lines, cookieFilePath);
+                logger.LogInformation("新增成功！");
+                return;
+            }
+
+            ckInfo.CookieItemDictionary.TryGetValue("DedeUserID", out var userId);
+            userId ??= ckInfo.CookieStr;
+            var indexOfCkConfigEnd = lines.FindIndex(
+                indexOfCkConfigKey,
+                x => x.TrimStart().StartsWith("]")
+            );
+            var indexOfTargetCk = lines.FindIndex(
+                indexOfCkConfigKey,
+                indexOfCkConfigEnd - indexOfCkConfigKey,
+                x => x.Contains(userId) && !x.TrimStart().StartsWith("//")
             );
 
-            await SaveJson(lines, fileInfo);
-            logger.LogInformation("新增成功！");
-            return;
+            if (indexOfTargetCk == -1)
+            {
+                logger.LogInformation("不存在该用户，新增cookie");
+                lines.Insert(indexOfCkConfigEnd, $@"    ""{ckInfo.CookieStr}"",");
+                await SaveJson(lines, cookieFilePath);
+                logger.LogInformation("新增成功！");
+                return;
+            }
+
+            logger.LogInformation("已存在该用户，更新cookie");
+            lines[indexOfTargetCk] = $@"    ""{ckInfo.CookieStr}"",";
+            await SaveJson(lines, cookieFilePath);
+            logger.LogInformation("更新成功！");
         }
-
-        ckInfo.CookieItemDictionary.TryGetValue("DedeUserID", out var userId);
-        userId ??= ckInfo.CookieStr;
-        var indexOfCkConfigEnd = lines.FindIndex(
-            indexOfCkConfigKey,
-            x => x.TrimStart().StartsWith("]")
-        );
-        var indexOfTargetCk = lines.FindIndex(
-            indexOfCkConfigKey,
-            indexOfCkConfigEnd - indexOfCkConfigKey,
-            x => x.Contains(userId) && !x.TrimStart().StartsWith("//")
-        );
-
-        if (indexOfTargetCk == -1)
+        catch (Exception ex)
         {
-            logger.LogInformation("不存在该用户，新增cookie");
-            lines.Insert(indexOfCkConfigEnd, $@"    ""{ckInfo.CookieStr}"",");
-            await SaveJson(lines, fileInfo);
-            logger.LogInformation("新增成功！");
-            return;
+            logger.LogError(ex, "保存Cookie到文件失败：{message}", ex.Message);
+            logger.LogWarning("Cookie内容：{cookie}", ckInfo.CookieStr);
+            logger.LogWarning("请手动将上述Cookie添加到配置文件中");
+            throw;
         }
-
-        logger.LogInformation("已存在该用户，更新cookie");
-        lines[indexOfTargetCk] = $@"    ""{ckInfo.CookieStr}"",";
-        await SaveJson(lines, fileInfo);
-        logger.LogInformation("更新成功！");
     }
 
     public async Task<bool> SaveCookieToQinLongAsync(
@@ -394,11 +401,11 @@ public class LoginDomainService(
         return $"https://tool.lu/qrcode/basic.html?text={encode}";
     }
 
-    private async Task SaveJson(List<string> lines, IFileInfo fileInfo)
+    private async Task SaveJson(List<string> lines, string filePath)
     {
         var newJson = string.Join(Environment.NewLine, lines);
 
-        await using var sw = new StreamWriter(fileInfo.PhysicalPath!);
+        await using var sw = new StreamWriter(filePath);
         await sw.WriteAsync(newJson);
     }
 
