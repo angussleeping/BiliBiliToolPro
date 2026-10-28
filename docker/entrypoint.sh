@@ -17,8 +17,8 @@ if [ "$(id -u)" = "0" ]; then
         useradd -u "$PUID" -g "$PGID" -M -d /app -s /sbin/nologin bilitool
     fi
 
-    mkdir -p /app/config /app/Logs
-    chown -R "$PUID:$PGID" /app/config /app/Logs
+    mkdir -p /app/config /app/Logs /app/keys
+    chown -R "$PUID:$PGID" /app/config /app/Logs /app/keys
 
     echo "Running maintenance scripts..."
 
@@ -34,6 +34,6 @@ if [ "$(id -u)" = "0" ]; then
 fi
 
 # 已以非 root 启动（如 docker run --user），直接运行
-mkdir -p /app/config /app/Logs 2>/dev/null || true
+mkdir -p /app/config /app/Logs /app/keys 2>/dev/null || true
 echo "Starting application as uid=$(id -u)..."
 exec dotnet Ray.BiliBiliTool.Web.dll "$@"

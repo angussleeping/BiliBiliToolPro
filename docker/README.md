@@ -59,8 +59,11 @@ bili_tool_web
 ├── Logs
 ├── config
 ├──── cookies.json
+├── keys
 └── docker-compose.yml
 ```
+
+> `keys` 用于持久化登录 Cookie 的签名密钥（ASP.NET DataProtection），重建容器后登录状态不会失效；无需手工创建，首次启动会自动生成。
 
 ### 3.2. 其他命令参考
 
@@ -167,6 +170,7 @@ Security__EnableSwagger=true         # 需要 /swagger API 文档时开启（默
 说明：
 
 - `Security__RequireHttps=true` 后，必须已存在可用的 HTTPS 入口，否则无法登录；
+- `Security__DataProtectionKeysDirectory` 镜像内已默认指向 `/app/keys`，请把该目录挂载到宿主机（如 `./keys:/app/keys`），否则重建容器后需重新登录；
 - 未开启 `RequireHttps` 时不会启用 HTTPS 重定向，纯 HTTP 访问不会出现“无法确定 HTTPS 端口”的告警；
 - 生产环境默认不注册 `/swagger` 与 `/swagger/v1/swagger.json`，需要时再显式打开；
 - 开启 `UseForwardedHeaders` 会信任所有代理转发的 `X-Forwarded-For` / `X-Forwarded-Proto`，请确保容器端口 22330 不直接暴露到公网。

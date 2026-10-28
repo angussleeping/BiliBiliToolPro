@@ -1,5 +1,6 @@
 using BlazingQuartz;
 using BlazingQuartz.Core;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi.Models;
 using MudBlazor.Services;
@@ -49,6 +50,16 @@ try
         .AddInteractiveServerComponents()
         .AddInteractiveWebAssemblyComponents();
     builder.Services.AddControllers();
+
+    // 显式持久化 DataProtection 密钥：容器内由 Security__DataProtectionKeysDirectory 指向挂载目录，
+    // 避免容器重建后登录 Cookie 的签名密钥变化，导致必须重新登录
+    var dataProtectionKeysDir = builder.Configuration["Security:DataProtectionKeysDirectory"];
+    if (!string.IsNullOrWhiteSpace(dataProtectionKeysDir))
+    {
+        builder
+            .Services.AddDataProtection()
+            .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysDir));
+    }
 
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>

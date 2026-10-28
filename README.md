@@ -134,6 +134,7 @@ BiliTool 实现自动完成任务的原理，是通过调用一系列开放的ap
 - 反向代理（Nginx/Caddy/Traefik 等）部署时设置 `Security:UseForwardedHeaders=true`，`Program.cs` 会在管道最前端启用 `UseForwardedHeaders`，从而识别真实协议与客户端 IP（登录限流也按真实 IP 统计）；
 - 同一开关同时控制 `UseHttpsRedirection`：`RequireHttps=false`（容器默认）时不启用重定向，避免纯 HTTP 部署出现“无法确定 HTTPS 端口”的告警；
 - `/swagger` API 文档默认关闭（`Security:EnableSwagger=false`），需要时显式开启；开发环境（Development）自动开启。
+- 容器内登录 Cookie 的签名密钥持久化到 `/app/keys`（`Security__DataProtectionKeysDirectory`），请把该目录挂载到宿主机（如 `./keys:/app/keys`），否则重建容器后需要重新登录。
 
 **4）容器运行身份**
 

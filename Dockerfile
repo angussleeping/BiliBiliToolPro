@@ -30,6 +30,7 @@ RUN dotnet publish "Ray.BiliBiliTool.Web.csproj" -c Release --no-restore -o /app
 
 FROM base AS final
 WORKDIR /app
+ENV Security__DataProtectionKeysDirectory=/app/keys
 COPY --from=publish /app/publish .
 COPY docker/entrypoint.sh /app/entrypoint.sh
 RUN apt-get update \

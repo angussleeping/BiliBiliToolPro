@@ -7,6 +7,8 @@ services:
     volumes:
       - ./Logs:/app/Logs
       - ./config:/app/config
+      # 持久化 DataProtection 密钥，容器重建后登录状态仍然有效
+      - ./keys:/app/keys
     ports:
       - "22330:8080"
     environment:
