@@ -11,12 +11,16 @@ on:
   release:
     types: [created]
 
+# 推送镜像到 GHCR 需要 packages: write；fork 仓库的默认令牌常常只有只读权限
+permissions:
+  contents: read
+  packages: write
+
 env:
-  DOCKERHUB_USERNAME : ${{ secrets.DOCKERHUB_USERNAME }}
-  DOCKERHUB_PASSWORD : ${{ secrets.DOCKERHUB_PASSWORD }}
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
   GHCR_USERNAME: ${{ github.repository_owner }}
   GHCR_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-  DOCKER_IMG_NAME: "${{ secrets.DOCKERHUB_USERNAME }}/bili_tool_web"
   GHC_IMG_NAME: "ghcr.io/${{ github.repository_owner }}/bili_tool_web"
 
 jobs:
@@ -44,7 +48,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      # 未配置 DockerHub 凭据时只推送 GHCR，避免空用户名导致登录失败
       - name: Login to DockerHub
+        if: env.DOCKERHUB_USERNAME != ''
         uses: docker/login-action@v2
         with:
           username: ${{ env.DOCKERHUB_USERNAME }}
@@ -61,18 +67,25 @@ jobs:
         id: tags
         run: |
           targetVersion="${{ steps.getTargetVersion.outputs.TargetVersion }}"
-          dockerTagWithVersion="${{ env.DOCKER_IMG_NAME }}:$targetVersion"
-          ghcrTagWithVersion="${{ env.GHC_IMG_NAME }}:$targetVersion"
-          dockerTagWithLatest=""
-          ghcrTagWithLatest=""
+          withLatest=""
           if [ "${{ github.event.inputs.autoWithLatestTag }}" == "true" ] || [ -n "${{ github.event.release.created_at }}" ]; then
-            dockerTagWithLatest="${{ env.DOCKER_IMG_NAME }}:latest"
-            ghcrTagWithLatest="${{ env.GHC_IMG_NAME }}:latest"
+            withLatest="true"
           fi
-          echo "dockerTagWithVersion=$dockerTagWithVersion" >> $GITHUB_OUTPUT
-          echo "ghcrTagWithVersion=$ghcrTagWithVersion" >> $GITHUB_OUTPUT
-          echo "dockerTagWithLatest=$dockerTagWithLatest" >> $GITHUB_OUTPUT
-          echo "ghcrTagWithLatest=$ghcrTagWithLatest" >> $GITHUB_OUTPUT
+
+          {
+            echo "tags<<TAGS"
+            echo "${GHC_IMG_NAME}:${targetVersion}"
+            if [ -n "$withLatest" ]; then
+              echo "${GHC_IMG_NAME}:latest"
+            fi
+            if [ -n "$DOCKERHUB_USERNAME" ]; then
+              echo "${DOCKERHUB_USERNAME}/bili_tool_web:${targetVersion}"
+              if [ -n "$withLatest" ]; then
+                echo "${DOCKERHUB_USERNAME}/bili_tool_web:latest"
+              fi
+            fi
+            echo "TAGS"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build and push
         uses: docker/build-push-action@v4
@@ -80,8 +93,4 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ${{ steps.tags.outputs.dockerTagWithVersion }}
-            ${{ steps.tags.outputs.ghcrTagWithVersion }}
-            ${{ steps.tags.outputs.dockerTagWithLatest }}
-            ${{ steps.tags.outputs.ghcrTagWithLatest }}
+          tags: ${{ steps.tags.outputs.tags }}
