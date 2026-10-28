@@ -35,9 +35,8 @@ public class CookieStrFactory<TCookieInfo>(IConfiguration configuration)
     private Dictionary<int, Dictionary<string, string>> CookeStrListToCookieDic(List<string> ckList)
     {
         var dic = new Dictionary<int, Dictionary<string, string>>();
-        ckList ??= [];
 
-        for (int i = 0; i < ckList?.Count; i++)
+        for (int i = 0; i < ckList.Count; i++)
         {
             dic.Add(i, CkStrToDictionary(ckList[i]));
         }
@@ -51,17 +50,16 @@ public class CookieStrFactory<TCookieInfo>(IConfiguration configuration)
         var ckItemList = ckStr.Split(";", StringSplitOptions.TrimEntries).Distinct();
         foreach (var item in ckItemList)
         {
-            var key = item[..item.IndexOf("=", StringComparison.Ordinal)].Trim();
-            var value = item[(item.IndexOf("=", StringComparison.Ordinal) + 1)..].Trim();
+            // 跳过无键名的片段（如末尾多余的 ;），避免 IndexOf 返回 -1 时切片越界
+            var index = item.IndexOf("=", StringComparison.Ordinal);
+            if (index <= 0)
+                continue;
+
+            var key = item[..index].Trim();
+            var value = item[(index + 1)..].Trim();
             dic.AddIfNotExist(new KeyValuePair<string, string>(key, value), p => p.Key == key);
         }
         return dic;
-    }
-
-    private string DictionaryToCkStr(Dictionary<string, string> dic)
-    {
-        var list = dic.Select(item => $"{item.Key}={item.Value}").ToList();
-        return string.Join("; ", list);
     }
 
     #endregion

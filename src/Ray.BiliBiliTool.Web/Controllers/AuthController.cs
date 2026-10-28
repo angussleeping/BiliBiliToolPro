@@ -12,8 +12,8 @@ public class AuthController(IAuthService authService, LoginThrottle loginThrottl
 {
     [HttpPost("login")]
     public async Task<IActionResult> Login(
-        [FromForm] string username,
-        [FromForm] string password,
+        [FromForm] string? username,
+        [FromForm] string? password,
         [FromForm] string? returnUrl
     )
     {
@@ -22,6 +22,15 @@ public class AuthController(IAuthService authService, LoginThrottle loginThrottl
         {
             return Redirect(
                 $"/login?error=locked&returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}"
+            );
+        }
+
+        // 表单缺字段时直接按失败处理，避免空值传入密码校验导致 500
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            loginThrottle.RegisterFailure(throttleKey);
+            return Redirect(
+                $"/login?error=true&returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}"
             );
         }
 

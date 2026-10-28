@@ -155,6 +155,8 @@ export BILI_GITHUB_PROXY="https://github.moeyy.xyz/" # 下载二进制包时使�
 
 bilitool没有先行版的概念，因为只有main分支才会打包，更新会稍慢一点。
 
+如果日志提示 `获取最新版本失败（可能触发了 GitHub API 限流）`，说明从 GitHub API 读取 Release 信息被限流，稍后重试即可；也可以临时把 `BILI_MODE` 改为 `dotnet` 继续运行。
+
 另外，alpine版的问题，我不建议来提交issue，因为已经大大超出本项目的scope了，建议可以去给alpine官方或微软的dotnet官方提交issue。
 
 ### 4.2. Couldn't find a valid ICU package installed on the system

@@ -17,6 +17,6 @@ public class LiveLotteryJob(
     protected override async Task DoExecuteAsync(IJobExecutionContext context)
     {
         _logger.LogInformation($"{nameof(LiveLotteryJob)} started.");
-        await appService.DoTaskAsync();
+        await appService.DoTaskAsync(context.CancellationToken);
     }
 }

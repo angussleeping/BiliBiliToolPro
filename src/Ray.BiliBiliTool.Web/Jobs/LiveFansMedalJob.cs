@@ -17,6 +17,6 @@ public class LiveFansMedalJob(
     protected override async Task DoExecuteAsync(IJobExecutionContext context)
     {
         _logger.LogInformation($"{nameof(LiveFansMedalJob)} started.");
-        await appService.DoTaskAsync();
+        await appService.DoTaskAsync(context.CancellationToken);
     }
 }

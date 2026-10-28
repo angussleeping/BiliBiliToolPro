@@ -79,18 +79,18 @@ public class BiliBiliToolHostedService(
 
     private async Task RandomSleepAsync(CancellationToken cancellationToken)
     {
-        if (
-            configuration["RunTasks"]!.Contains("Login")
-            || configuration["RunTasks"]!.Contains("Test")
-        )
+        // 交互式运行（未指定 RunTasks）时该配置项为空，需按空字符串处理
+        var runTasks = configuration["RunTasks"] ?? "";
+        if (runTasks.Contains("Login") || runTasks.Contains("Test"))
             return;
 
-        if (_securityOptions.RandomSleepMaxMin > 0)
-        {
-            int randomMin = new Random().Next(1, ++_securityOptions.RandomSleepMaxMin);
-            logger.LogInformation("随机休眠{min}分钟" + Environment.NewLine, randomMin);
-            await Task.Delay(randomMin * 1000 * 60, cancellationToken);
-        }
+        var maxMin = _securityOptions.RandomSleepMaxMin;
+        if (maxMin <= 0)
+            return;
+
+        int randomMin = Random.Shared.Next(1, maxMin + 1);
+        logger.LogInformation("随机休眠{min}分钟" + Environment.NewLine, randomMin);
+        await Task.Delay(TimeSpan.FromMinutes(randomMin), cancellationToken);
     }
 
     /// <summary>
@@ -116,6 +116,12 @@ public class BiliBiliToolHostedService(
         while (true)
         {
             var index = System.Console.ReadLine();
+            // 无 TTY 或输入流已结束时 ReadLine 返回 null，直接退出避免死循环
+            if (index is null)
+            {
+                throw new InvalidOperationException("未读取到输入，无法确定目标任务");
+            }
+
             bool suc = int.TryParse(index, out int num);
             if (suc)
             {

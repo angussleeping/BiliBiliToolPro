@@ -1,8 +1,6 @@
-﻿using System.Text.Json;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Ray.BiliBiliTool.Config.Options;
-using Ray.BiliBiliTool.Infrastructure;
 
 namespace Ray.BiliBiliTool.Config.Extensions;
 
@@ -21,7 +19,6 @@ public static class ServiceCollectionExtension
         //Options
         services
             .AddOptions()
-            .Configure<JsonSerializerOptions>(o => o = JsonSerializerOptionsBuilder.DefaultOptions)
             .Configure<BiliBiliCookieOptions>(configuration.GetSection("BiliBiliCookie"))
             .Configure<DailyTaskOptions>(configuration.GetSection("DailyTaskConfig"))
             .Configure<MangaTaskOptions>(configuration.GetSection("MangaTaskConfig"))

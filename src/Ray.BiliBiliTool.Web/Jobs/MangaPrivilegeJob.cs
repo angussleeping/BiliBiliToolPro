@@ -17,6 +17,6 @@ public class MangaPrivilegeJob(
     protected override async Task DoExecuteAsync(IJobExecutionContext context)
     {
         _logger.LogInformation($"{nameof(MangaPrivilegeJob)} started.");
-        await appService.DoTaskAsync();
+        await appService.DoTaskAsync(context.CancellationToken);
     }
 }

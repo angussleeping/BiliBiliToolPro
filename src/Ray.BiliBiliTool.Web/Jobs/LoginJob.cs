@@ -17,6 +17,6 @@ public class LoginJob(
     protected override async Task DoExecuteAsync(IJobExecutionContext context)
     {
         _logger.LogInformation($"{nameof(LoginJob)} started.");
-        await appService.DoTaskAsync();
+        await appService.DoTaskAsync(context.CancellationToken);
     }
 }

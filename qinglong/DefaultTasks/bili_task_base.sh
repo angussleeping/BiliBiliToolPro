@@ -10,6 +10,17 @@ set -u
 # This is causing it to fail
 set -o pipefail
 
+# 墙内切换到国内镜像源后，脚本退出时恢复原始配置，避免污染青龙环境
+restore_sources() {
+    if [ -f /etc/apt/sources.list.bak ]; then
+        cp -f /etc/apt/sources.list.bak /etc/apt/sources.list 2>/dev/null || true
+    fi
+    if [ -f /etc/apk/repositories.bak ]; then
+        cp -f /etc/apk/repositories.bak /etc/apk/repositories 2>/dev/null || true
+    fi
+}
+trap restore_sources EXIT
+
 verbose=false                                       # 开启debug日志
 bili_repo=${BILI_REPO:-"angussleeping/bilibilitoolpro"} # 仓库地址（owner/repo）
 bili_branch=""                         # 分支名，空或_develop
@@ -224,37 +235,22 @@ check_os() {
     say "当前选择的运行方式：$prefer_mode"
 }
 
-# 检查安装jq
-check_jq() {
-    if [ "$current_linux_os" = "debian" ]; then
-        if ! machine_has jq; then
-            say "jq未安装，开始安装依赖..."
-            apt-get update
-            apt-get install -y jq
-        fi
-    else
-        if ! machine_has jq; then
-            say "jq未安装，开始安装依赖..."
-            apk update
-            apk add -y jq
-        fi
-    fi
-}
+# 检查并安装指定命令，$1 为命令名，$2 为软件包名（缺省同命令名）
+check_cmd() {
+    local cmd=$1
+    local pkg=${2:-$1}
 
-# 检查安装unzip
-check_unzip() {
+    if machine_has "$cmd"; then
+        return 0
+    fi
+
+    say "${cmd}未安装，开始安装依赖..."
     if [ "$current_linux_os" = "debian" ]; then
-        if ! machine_has unzip; then
-            say "unzip未安装，开始安装依赖..."
-            apt-get update
-            apt-get install -y unzip
-        fi
+        apt-get update
+        apt-get install -y "$pkg"
     else
-        if ! machine_has unzip; then
-            say "unzip未安装，开始安装依赖..."
-            apk update
-            apk add -y unzip
-        fi
+        apk update
+        apk add -y "$pkg"
     fi
 }
 
@@ -262,9 +258,16 @@ check_unzip() {
 check_dotnet() {
     eval $invocation
 
+    if ! machine_has dotnet; then
+        say "未安装dotnet"
+        return 1
+    fi
+
     dotnetVersion=$(dotnet --version)
     say "当前dotnet版本：$dotnetVersion"
-    if [[ $(echo "$dotnetVersion" | grep -oE '^[0-9]+') -ge 8 ]]; then
+    local majorVersion
+    majorVersion=$(echo "$dotnetVersion" | grep -oE '^[0-9]+')
+    if [[ -n "$majorVersion" ]] && [ "$majorVersion" -ge 8 ]; then
         say "已安装，且版本满足"
         say "which dotnet: $(which dotnet)"
         return 0
@@ -398,9 +401,15 @@ install_bilitool() {
     LATEST_RELEASE=$(curl -s https://api.github.com/repos/$bili_repo/releases/latest)
 
     # 解析最新的tag名称
-    check_jq
-    LATEST_TAG=$(echo $LATEST_RELEASE | jq -r '.tag_name')
+    check_cmd jq jq
+    LATEST_TAG=$(echo "$LATEST_RELEASE" | jq -r '.tag_name')
     say "最新版本：$LATEST_TAG"
+
+    # API 限流或仓库无 Release 时 tag 为空/null，提前失败，避免拼接出无效下载地址
+    if [[ -z "$LATEST_TAG" || "$LATEST_TAG" == "null" ]]; then
+        say_err "获取最新版本失败（可能触发了 GitHub API 限流），请稍后重试，或改用 dotnet 运行模式"
+        return 1
+    fi
 
     # 读取之前存储的tag并比较
     if [ "$LATEST_TAG" != "$bilitool_installed_version" ]; then
@@ -409,10 +418,17 @@ install_bilitool() {
 
         # 使用curl下载文件到当前目录下的test.zip文件
         local zip_file_name="bilitool-$LATEST_TAG.zip"
-        curl -L -o "$zip_file_name" $ASSET_URL
+        curl -L -o "$zip_file_name" "$ASSET_URL" || {
+            say_err "下载失败：$ASSET_URL"
+            return 1
+        }
+        if [ ! -s "$zip_file_name" ]; then
+            say_err "下载文件为空：$ASSET_URL"
+            return 1
+        fi
 
         # 解压
-        check_unzip
+        check_cmd unzip unzip
         unzip -jo "$zip_file_name" -d ./ &&
             rm "$zip_file_name" &&
             rm -f appsettings.*

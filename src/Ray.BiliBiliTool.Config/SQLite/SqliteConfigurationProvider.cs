@@ -56,7 +56,7 @@ public class SqliteConfigurationProvider(SqliteConfigurationSource source) : Con
             INSERT OR REPLACE INTO [{_tableName}] ([{_keyColumnName}], [{_valueColumnName}])
             VALUES (@key, @value)";
         command.Parameters.AddWithValue("@key", key);
-        command.Parameters.AddWithValue("@value", value);
+        command.Parameters.AddWithValue("@value", value ?? (object)DBNull.Value);
         command.ExecuteNonQuery();
 
         Data[key] = value;

@@ -26,6 +26,10 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Configuration.AddJsonFile("config/cookies.json", optional: true, reloadOnChange: true);
+    var requireHttps = builder.Configuration.GetValue<bool>("Security:RequireHttps");
+    var enableSwagger =
+        builder.Environment.IsDevelopment()
+        || builder.Configuration.GetValue<bool>("Security:EnableSwagger");
     var sqliteConnStr = builder.Configuration.GetConnectionString("Sqlite");
     var sqliteDbPath = string.IsNullOrEmpty(sqliteConnStr)
         ? null
@@ -145,7 +149,15 @@ try
         app.UseHsts();
     }
 
-    app.UseHttpsRedirection();
+    // 纯 HTTP 部署（如容器映射 22330 端口）不启用重定向，避免每次请求都因无法确定 HTTPS 端口而告警
+    if (requireHttps)
+    {
+        app.UseHttpsRedirection();
+    }
+    else
+    {
+        app.Logger.LogInformation("Security:RequireHttps 未开启，跳过 HTTPS 重定向");
+    }
 
     app.UseStaticFiles();
     app.UseAntiforgery();
@@ -158,18 +170,27 @@ try
         .AddInteractiveWebAssemblyRenderMode()
         .AddAdditionalAssemblies(typeof(Ray.BiliBiliTool.Web.Client._Imports).Assembly);
 
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
+    // 生产环境默认关闭 API 文档，需要时通过 Security:EnableSwagger=true 显式开启
+    if (enableSwagger)
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "BiliBiliToolPro API V1");
-        c.RoutePrefix = "swagger";
-    });
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "BiliBiliToolPro API V1");
+            c.RoutePrefix = "swagger";
+        });
+    }
+    else
+    {
+        app.Logger.LogInformation("Security:EnableSwagger 未开启，跳过 Swagger 文档");
+    }
 
     app.Run();
 }
 catch (Exception ex)
 {
     Log.Fatal(ex, "Application terminated unexpectedly");
+    Environment.ExitCode = 1;
 }
 finally
 {

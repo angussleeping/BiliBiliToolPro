@@ -160,12 +160,15 @@ PGID=1001
 
 ```
 Security__UseForwardedHeaders=true   # 识别真实协议与客户端 IP（限流按真实 IP 统计）
-Security__RequireHttps=true          # 登录 Cookie 仅通过 HTTPS 传输
+Security__RequireHttps=true          # 登录 Cookie 仅通过 HTTPS 传输，并启用 HTTPS 重定向
+Security__EnableSwagger=true         # 需要 /swagger API 文档时开启（默认关闭）
 ```
 
 说明：
 
 - `Security__RequireHttps=true` 后，必须已存在可用的 HTTPS 入口，否则无法登录；
+- 未开启 `RequireHttps` 时不会启用 HTTPS 重定向，纯 HTTP 访问不会出现“无法确定 HTTPS 端口”的告警；
+- 生产环境默认不注册 `/swagger` 与 `/swagger/v1/swagger.json`，需要时再显式打开；
 - 开启 `UseForwardedHeaders` 会信任所有代理转发的 `X-Forwarded-For` / `X-Forwarded-Proto`，请确保容器端口 22330 不直接暴露到公网。
 
 ### 6.3. 定时任务随机延时
