@@ -7,6 +7,7 @@ services:
     volumes:
       - ./Logs:/app/Logs
       - ./config:/app/config
+      - ./keys:/app/keys # DataProtection keys; keeps login sessions valid across container rebuilds
     ports:
       - "22330:8080"
     environment:

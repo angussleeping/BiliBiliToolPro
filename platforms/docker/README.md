@@ -62,6 +62,7 @@ docker run -d --name="bili_tool_web" \
     -e TZ=Asia/Shanghai \
     -v "$(pwd)/Logs:/app/Logs" \
     -v "$(pwd)/config:/app/config" \
+    -v "$(pwd)/keys:/app/keys" \
     ghcr.io/angussleeping/bili_tool_web
 docker logs -f bili_tool_web
 ```
