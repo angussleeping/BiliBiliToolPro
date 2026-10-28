@@ -100,7 +100,8 @@ public class BiliBiliToolHostedService(
     /// <returns></returns>
     private Task<string[]> ReadTargetTasksAsync(CancellationToken cancellationToken)
     {
-        string[] tasks = configuration["RunTasks"]!.Split(
+        // 配置项缺失时按空字符串处理，进入交互式选择
+        string[] tasks = (configuration["RunTasks"] ?? "").Split(
             "&",
             options: StringSplitOptions.RemoveEmptyEntries
         );
