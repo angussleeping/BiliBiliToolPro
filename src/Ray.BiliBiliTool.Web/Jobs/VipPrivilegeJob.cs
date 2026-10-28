@@ -1,12 +1,15 @@
+using Microsoft.Extensions.Options;
 using Quartz;
 using Ray.BiliBiliTool.Application.Contracts;
+using Ray.BiliBiliTool.Config.Options;
 
 namespace Ray.BiliBiliTool.Web.Jobs;
 
 public class VipPrivilegeJob(
     ILogger<VipPrivilegeJob> logger,
-    IVipPrivilegeTaskAppService appService
-) : BaseJob<VipPrivilegeJob>(logger)
+    IVipPrivilegeTaskAppService appService,
+    IOptionsMonitor<SecurityOptions> securityOptions
+) : BaseJob<VipPrivilegeJob>(logger, securityOptions)
 {
     private readonly ILogger<VipPrivilegeJob> _logger = logger;
     public static readonly JobKey Key = new(nameof(VipPrivilegeJob), Constants.BiliJobGroup);

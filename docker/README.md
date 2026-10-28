@@ -168,6 +168,16 @@ Security__RequireHttps=true          # 登录 Cookie 仅通过 HTTPS 传输
 - `Security__RequireHttps=true` 后，必须已存在可用的 HTTPS 入口，否则无法登录；
 - 开启 `UseForwardedHeaders` 会信任所有代理转发的 `X-Forwarded-For` / `X-Forwarded-Proto`，请确保容器端口 22330 不直接暴露到公网。
 
+### 6.3. 定时任务随机延时
+
+镜像内默认开启：每个定时任务被触发后，先随机延时 `1 ~ 300` 秒再执行，避免每天都在同一秒准点请求。可通过环境变量调整上限（单位秒），设为 `0` 即关闭：
+
+```
+Security__RandomSleepMaxSec=300
+```
+
+该延时只作用于定时触发，页面上的“立即运行”、扫码登录和测试任务不会延时。完整说明见 [配置说明](../docs/configuration.md) 的 `3.2.2. 随机睡眠的最大时长`。
+
 ## 7. 添加 Bili 账号
 
 扫码进行账号添加。

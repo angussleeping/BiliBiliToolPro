@@ -1,10 +1,15 @@
+using Microsoft.Extensions.Options;
 using Quartz;
 using Ray.BiliBiliTool.Application.Contracts;
+using Ray.BiliBiliTool.Config.Options;
 
 namespace Ray.BiliBiliTool.Web.Jobs;
 
-public class ChargeJob(ILogger<ChargeJob> logger, IChargeTaskAppService appService)
-    : BaseJob<ChargeJob>(logger)
+public class ChargeJob(
+    ILogger<ChargeJob> logger,
+    IChargeTaskAppService appService,
+    IOptionsMonitor<SecurityOptions> securityOptions
+) : BaseJob<ChargeJob>(logger, securityOptions)
 {
     private readonly ILogger<ChargeJob> _logger = logger;
     public static readonly JobKey Key = new(nameof(ChargeJob), Constants.BiliJobGroup);

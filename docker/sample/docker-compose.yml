@@ -20,4 +20,6 @@ services:
       # Security__UseForwardedHeaders: "true"
       # 强制 HTTPS：Cookie 仅通过 HTTPS 传输（必须已有 HTTPS 入口，否则无法登录）
       # Security__RequireHttps: "true"
+      # 定时任务执行前随机延时的最大秒数，镜像内默认 300（即每次触发后 5 分钟内随机执行）；设为 0 关闭
+      # Security__RandomSleepMaxSec: "300"
       DailyTaskConfig__Cron: "0 0 15 * * ?"

@@ -244,6 +244,18 @@ Console项目（青龙）的环境变量需要添加`Ray_`前缀，其他不用�
 | 值域    | 数字                                |
 | 默认值   | 20                                |
 
+> 上述 `Security__RandomSleepMaxMin` 作用于本地运行（Console）时的启动延时。Docker/Web 版本是常驻的定时任务程序，不经过启动流程，使用下面的秒级配置控制**每个定时任务执行前**的随机延时。
+
+| TITLE | CONTENT                           |
+| ----- | --------------------------------- |
+| 配置Key | `Security__RandomSleepMaxSec`     |
+| 值域    | 数字，单位秒，[0,+]                     |
+| 默认值   | 300（Docker/Web 的 appsettings 中默认配置） |
+
+- 每次定时任务触发后，先随机延时 `1 ~ Security__RandomSleepMaxSec` 秒再执行，例如配置为 300 时，实际执行时间会在触发起 5 分钟内随机；
+- 仅对定时触发（Cron）生效，页面上的“立即运行”不延时；扫码登录和测试任务也不延时；
+- 配置为 0 表示不延时，Docker 下可通过环境变量覆盖：`Security__RandomSleepMaxSec=0`。
+
 <a id="markdown-323-两次调用b站api之间的间隔秒数" name="323-两次调用b站api之间的间隔秒数"></a>
 #### 3.2.3. 两次调用B站Api之间的间隔秒数
 
