@@ -33,6 +33,7 @@ public static class ServiceCollectionExtension
         >();
         services.AddScoped<INotificationSettingsWorkflow, NotificationSettingsWorkflow>();
         services.AddMemoryCache();
+        services.AddSingleton<LoginThrottle>();
         services.AddScoped<ILiveMedalDashboardService, LiveMedalDashboardService>();
 
         // 应用版本：宿主程序集元数据，进程内不变，单例即可

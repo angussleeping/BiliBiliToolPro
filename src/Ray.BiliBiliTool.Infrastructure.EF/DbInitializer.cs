@@ -1,10 +1,16 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Ray.BiliBiliTool.Domain;
 using Ray.BiliBiliTool.Infrastructure.Helpers;
 
 namespace Ray.BiliBiliTool.Infrastructure.EF;
 
-public class DbInitializer(BiliDbContext context)
+public class DbInitializer(
+    BiliDbContext context,
+    IConfiguration configuration,
+    ILogger<DbInitializer> logger
+)
 {
     private const string DefaultUserName = "admin";
     private const string DefaultPassword = "BiliTool@2233";
@@ -23,7 +29,16 @@ public class DbInitializer(BiliDbContext context)
             return;
         }
 
-        var (hash, salt) = PasswordHelper.HashPassword(DefaultPassword);
+        var password = configuration["Security:DefaultAdminPassword"];
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            password = DefaultPassword;
+            logger.LogWarning(
+                "Security:DefaultAdminPassword is not configured; using the default admin password. Change it immediately after signing in"
+            );
+        }
+
+        var (hash, salt) = PasswordHelper.HashPassword(password);
         var adminUser = new User
         {
             Username = DefaultUserName,

@@ -21,7 +21,7 @@ _Avoid_: 账号、账户、用户
 _Avoid_: 启动类、bootstrap
 
 **编排层**:
-负责拉起、重启、告警宿主进程的外部系统：Docker / podman、青龙、白虎、呆呆、tencentScf、Helm / K8s、GitHub Actions。指的是**外部**那一层，不是仓库里的 `platforms/`。
+负责拉起、重启、告警宿主进程的外部系统：Docker、青龙、白虎、呆呆。指的是**外部**那一层，不是仓库里的 `platforms/`。
 _Avoid_: 运维、部署脚本
 
 **启动失败**:

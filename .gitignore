@@ -357,19 +357,10 @@ MigrationBackup/
 
 #
 .idea/
-platforms/tencentScf/.env
 .obsidian
 
 # vs code
 .vscode
-
-# krew
-bilipro
-platforms/krew/bilipro
-platforms/krew/cmd/kubectl-bilipro
-platforms/krew/kustomization.yaml
-platforms/krew/pkg/utils/fixtures
-kustomization.yaml
 
 # cookie config
 **/cookie-check-state.json*

@@ -1,5 +1,7 @@
 using System.Reflection;
+using Microsoft.Extensions.Options;
 using Quartz;
+using Ray.BiliBiliTool.Config.Options;
 using Ray.BiliBiliTool.Web.Services;
 using Ray.Serilog.Sinks.Batched;
 using Serilog.Context;
@@ -8,7 +10,8 @@ namespace Ray.BiliBiliTool.Web.Jobs;
 
 public abstract class BaseJob<TJob>(
     ILogger<TJob> logger,
-    ITaskFailureBatchMonitor? failureMonitor = null
+    ITaskFailureBatchMonitor? failureMonitor = null,
+    IOptionsMonitor<SecurityOptions>? securityOptions = null
 ) : IJob
     where TJob : BaseJob<TJob>
 {
@@ -39,6 +42,7 @@ public abstract class BaseJob<TJob>(
             try
             {
                 logger.LogInformation($"{typeof(TJob).Name} started.");
+                await RandomSleepAsync(context, cancellationToken);
                 await DoExecuteAsync(context);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -84,6 +88,36 @@ public abstract class BaseJob<TJob>(
         {
             logger.LogWarning(ex, "Fail to push logs");
         }
+    }
+
+    /// <summary>
+    /// Random delay before a scheduled task runs, so requests do not hit Bilibili at the
+    /// exact same time every day. Only applies to cron triggers; manual runs from the
+    /// panel and the login/test jobs are not delayed.
+    /// </summary>
+    private async Task RandomSleepAsync(
+        IJobExecutionContext context,
+        CancellationToken cancellationToken
+    )
+    {
+        if (context.Trigger is not ICronTrigger)
+            return;
+
+        var jobName = typeof(TJob).Name;
+        if (jobName == nameof(LoginJob) || jobName == nameof(TestBiliJob))
+            return;
+
+        var maxSec = securityOptions?.CurrentValue.RandomSleepMaxSec ?? 0;
+        if (maxSec <= 0)
+            return;
+
+        var seconds = Random.Shared.Next(1, maxSec + 1);
+        logger.LogInformation(
+            "Random delay of {seconds} seconds before execution (cap {maxSec} seconds)",
+            seconds,
+            maxSec
+        );
+        await Task.Delay(TimeSpan.FromSeconds(seconds), cancellationToken);
     }
 
     protected abstract Task DoExecuteAsync(IJobExecutionContext context);

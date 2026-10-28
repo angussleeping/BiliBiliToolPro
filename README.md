@@ -27,6 +27,8 @@ It supports QR-code login and cookie updates, multiple Bilibili accounts, daily 
 > [!IMPORTANT]
 > This project is intended for learning and testing. Review the tasks and configuration before running them, use it responsibly, and comply with Bilibili's terms. Do not expose account cookies or other secrets in issues or public configuration.
 
+> This repository is a fork of [RayWangQvQ/BiliBiliToolPro](https://github.com/RayWangQvQ/BiliBiliToolPro). It keeps only three deployment methods (automation panels, Docker, local release binaries) and applies additional security hardening on top of upstream.
+
 <p align="center">
   <img src="docs/imgs/web-index.png" alt="Web panel schedules" width="800">
   <br>
@@ -43,12 +45,9 @@ Choose one deployment guide, start the application, and run the **Login** task t
 
 | Environment | Guide |
 | --- | --- |
-| Containers | [Docker](platforms/docker/README.md) · [Podman](platforms/podman/README.md) · [Helm / Kubernetes](platforms/helm/README.md) |
+| Containers | [Docker](platforms/docker/README.md) |
 | Automation panels | [Qinglong](platforms/qinglong/README.md) · [Baihu](platforms/baihu/README.md) · [Daidai](platforms/daidai/README.md) |
 | Local machine or server | [Download and run the application](docs/runInLocal.md) |
-| Other platforms | [Tencent SCF](platforms/tencentScf/README.md) · [Krew](platforms/krew/README.md) · [GitHub Actions (archived recipe)](platforms/gitHubActions/README.md) |
-
-The GitHub Actions task workflows are stored under `platforms/gitHubActions/bak/`, not in the active repository workflows. That guide describes an archived recipe, **not** a ready-to-enable deployment.
 
 For settings, environment variables, and task-specific options, see the [configuration guide](docs/configuration.md). For troubleshooting, see the [FAQ](docs/questions.md).
 
@@ -102,9 +101,9 @@ Optional execution notifications support Telegram, PushPlus, WeCom, DingTalk, Mi
 
 ## Help and releases
 
-Before reporting a problem, update to the latest release and search the [FAQ](docs/questions.md), [configuration guide](docs/configuration.md), [issues](https://github.com/RayWangQvQ/BiliBiliToolPro/issues), and [discussions](https://github.com/RayWangQvQ/BiliBiliToolPro/discussions). Open an issue for a reproducible bug or feature request; use discussions for questions and ideas. Never post cookies, tokens, or passwords.
+Before reporting a problem, update to the latest release and search the [FAQ](docs/questions.md), [configuration guide](docs/configuration.md), [issues](https://github.com/angussleeping/BiliBiliToolPro/issues), and [discussions](https://github.com/angussleeping/BiliBiliToolPro/discussions). Open an issue for a reproducible bug or feature request; use discussions for questions and ideas. Never post cookies, tokens, or passwords.
 
-Follow [releases](https://github.com/RayWangQvQ/BiliBiliToolPro/releases) for published versions and the [issue tracker](https://github.com/RayWangQvQ/BiliBiliToolPro/issues) for ongoing work. Merges to `main` produce preview Docker images; stable releases are published separately.
+Follow [releases](https://github.com/angussleeping/BiliBiliToolPro/releases) for published versions and the [issue tracker](https://github.com/angussleeping/BiliBiliToolPro/issues) for ongoing work. Merges to `main` produce preview Docker images; stable releases are published separately.
 
 ## Contribute
 

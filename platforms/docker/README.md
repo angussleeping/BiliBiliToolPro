@@ -16,7 +16,7 @@ apt-get install curl
 The script attempts to install Docker if missing, downloads the Compose sample into `bili_tool_web/`, and starts the container (falling back to `docker run` if Compose is unavailable). Review a remote script before running it:
 
 ```bash
-bash <(curl -sSL https://raw.githubusercontent.com/RayWangQvQ/BiliBiliToolPro/main/platforms/docker/install.sh)
+bash <(curl -sSL https://raw.githubusercontent.com/angussleeping/BiliBiliToolPro/main/platforms/docker/install.sh)
 ```
 
 ## Option 2: Docker Compose
@@ -25,7 +25,7 @@ bash <(curl -sSL https://raw.githubusercontent.com/RayWangQvQ/BiliBiliToolPro/ma
 
 ```bash
 mkdir bili_tool_web && cd bili_tool_web
-wget https://raw.githubusercontent.com/RayWangQvQ/BiliBiliToolPro/main/platforms/docker/sample/docker-compose.yml
+wget https://raw.githubusercontent.com/angussleeping/BiliBiliToolPro/main/platforms/docker/sample/docker-compose.yml
 docker compose up -d
 docker logs -f bili_tool_web
 ```
@@ -56,13 +56,13 @@ docker compose pull && docker compose up -d
 
 ```bash
 mkdir bili_tool_web && cd bili_tool_web
-docker pull ghcr.io/raywangqvq/bili_tool_web
+docker pull ghcr.io/angussleeping/bili_tool_web
 docker run -d --name="bili_tool_web" \
     -p 22330:8080 \
     -e TZ=Asia/Shanghai \
     -v "$(pwd)/Logs:/app/Logs" \
     -v "$(pwd)/config:/app/config" \
-    ghcr.io/raywangqvq/bili_tool_web
+    ghcr.io/angussleeping/bili_tool_web
 docker logs -f bili_tool_web
 ```
 
@@ -98,7 +98,7 @@ Open the Web panel on port `22330`. The initial username is `admin` and the init
 
 ## Build your own image (optional)
 
-Published images include [Docker Hub (`zai7lou/bili_tool_web`)](https://hub.docker.com/repository/docker/zai7lou/bili_tool_web) and [GitHub Container Registry (`bili_tool_web`)](https://github.com/RayWangQvQ/BiliBiliToolPro/pkgs/container/bili_tool_web). To build locally, run this from the repository root, where `Dockerfile` is located:
+Published images are on [GitHub Container Registry (`bili_tool_web`)](https://github.com/angussleeping/BiliBiliToolPro/pkgs/container/bili_tool_web). To build locally, run this from the repository root, where `Dockerfile` is located:
 
 ```bash
 docker build -t TARGET_NAME .

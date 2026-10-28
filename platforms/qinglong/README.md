@@ -23,7 +23,7 @@ Choose **one** of these methods.
 ```text
 Name: Bilibili
 Type: Public repository
-URL: https://github.com/RayWangQvQ/BiliBiliToolPro.git
+URL: https://github.com/angussleeping/BiliBiliToolPro.git
 Schedule type: crontab
 Schedule: 2 2 28 * *
 Whitelist: bili_task_.+\.sh
@@ -36,7 +36,7 @@ Save and run the subscription once.
 
 ```text
 Name: Pull Bili repository
-Command: ql repo https://github.com/RayWangQvQ/BiliBiliToolPro.git "bili_task_"
+Command: ql repo https://github.com/angussleeping/BiliBiliToolPro.git "bili_task_"
 Schedule: 2 2 28 * *
 ```
 
@@ -74,25 +74,25 @@ Without it, copy the Cookie printed in the log and add it to the panel's environ
 
 ## Early builds
 
-Repository pulls should use `main`. The former `develop` branch and `dev/bili_dev_task_*` scripts have been removed. For unreleased changes, the alpha channel publishes the `zai7lou/bili_tool_web:alpha` **Docker image**, not a `bilitool` binary. It is a separate Docker deployment, not an alternate Qinglong pull branch.
+Repository pulls should use `main`. The former `develop` branch and `dev/bili_dev_task_*` scripts have been removed. For unreleased changes, the alpha channel publishes the `ghcr.io/angussleeping/bili_tool_web:alpha` **Docker image**, not a `bilitool` binary. It is a separate Docker deployment, not an alternate Qinglong pull branch.
 
 ## Slow GitHub downloads
 
 If GitHub access from the server is slow, you may prefix the repository URL with a proxy, for example:
 
 ```text
-https://github.moeyy.xyz/https://github.com/RayWangQvQ/BiliBiliToolPro.git
-https://gh-proxy.com/https://github.com/RayWangQvQ/BiliBiliToolPro.git
+https://github.moeyy.xyz/https://github.com/angussleeping/BiliBiliToolPro.git
+https://gh-proxy.com/https://github.com/angussleeping/BiliBiliToolPro.git
 ```
 
 Third-party proxy availability is not guaranteed.
 
 ## Environment variables
 
-`BILI_REPO` and `BILI_BRANCH` override which repository and branch the scripts look for. They default to `raywangqvq/bilibilitoolpro` and the main branch, so set them only when running from a fork.
+`BILI_REPO` and `BILI_BRANCH` override which repository and branch the scripts look for. They default to `angussleeping/bilibilitoolpro` and the main branch, so set them only when running from a different fork.
 
 ```bash
-export BILI_REPO=raywangqvq/bilibilitoolpro # repository owner/name
+export BILI_REPO=angussleeping/bilibilitoolpro # repository owner/name
 export BILI_BRANCH=                        # branch suffix; leave empty for main
 ```
 

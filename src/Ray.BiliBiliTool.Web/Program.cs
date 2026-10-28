@@ -1,5 +1,7 @@
 using BlazingQuartz;
 using BlazingQuartz.Core;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi;
 using MudBlazor.Services;
 using Ray.BiliBiliTool.Config.SQLite;
@@ -19,7 +21,16 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
+    var requireHttps = builder.Configuration.GetValue<bool>("Security:RequireHttps");
+    var enableSwagger =
+        builder.Environment.IsDevelopment()
+        || builder.Configuration.GetValue<bool>("Security:EnableSwagger");
     var sqliteConnStr = builder.Configuration.GetConnectionString("Sqlite");
+    // Parse the DataSource via the connection-string builder instead of naive
+    // Split('=')/Split(';') so values containing delimiters survive
+    var sqliteDbPath = string.IsNullOrEmpty(sqliteConnStr)
+        ? null
+        : new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(sqliteConnStr).DataSource;
     if (!string.IsNullOrEmpty(sqliteConnStr))
     {
         builder.Configuration.AddSqlite(
@@ -37,6 +48,17 @@ try
         .AddInteractiveWebAssemblyComponents();
     builder.Services.AddControllers();
 
+    // Persist DataProtection keys explicitly: the container points
+    // Security__DataProtectionKeysDirectory at a mounted directory so the login-cookie
+    // signing key survives container rebuilds (otherwise every recreate forces re-login)
+    var dataProtectionKeysDir = builder.Configuration["Security:DataProtectionKeysDirectory"];
+    if (!string.IsNullOrWhiteSpace(dataProtectionKeysDir))
+    {
+        builder
+            .Services.AddDataProtection()
+            .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysDir));
+    }
+
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>
     {
@@ -50,7 +72,7 @@ try
                 Contact = new OpenApiContact
                 {
                     Name = "BiliBiliToolPro",
-                    Url = new Uri("https://github.com/RayWangQvQ/BiliBiliToolPro"),
+                    Url = new Uri("https://github.com/angussleeping/BiliBiliToolPro"),
                 },
             }
         );
@@ -67,7 +89,7 @@ try
                 .ReadFrom.Services(services)
                 .Enrich.FromLogContext()
                 .WriteTo.SQLite(
-                    sqliteDbPath: sqliteConnStr?.Split(';')[0].Split('=')[1],
+                    sqliteDbPath: sqliteDbPath,
                     tableName: "bili_logs",
                     storeTimestampInUtc: true,
                     batchSize: 7
@@ -91,6 +113,19 @@ try
     Global.ServiceProviderRoot = app.Services;
     await app.InitializeBiliToolAsync();
 
+    // Enable when deployed behind a reverse proxy (Nginx/Caddy/Traefik) so HTTPS and
+    // the real client IP are recognized correctly
+    if (builder.Configuration.GetValue<bool>("Security:UseForwardedHeaders"))
+    {
+        var forwardedHeadersOptions = new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+        };
+        forwardedHeadersOptions.KnownNetworks.Clear();
+        forwardedHeadersOptions.KnownProxies.Clear();
+        app.UseForwardedHeaders(forwardedHeadersOptions);
+    }
+
     if (app.Environment.IsDevelopment())
     {
         app.UseWebAssemblyDebugging();
@@ -101,7 +136,16 @@ try
         app.UseHsts();
     }
 
-    app.UseHttpsRedirection();
+    // Pure-HTTP deployments (e.g. container port mapping to 22330) skip redirection to
+    // avoid a warning on every request about the undeterminable HTTPS port
+    if (requireHttps)
+    {
+        app.UseHttpsRedirection();
+    }
+    else
+    {
+        app.Logger.LogInformation("Security:RequireHttps is off, skipping HTTPS redirection");
+    }
 
     app.UseStaticFiles();
     app.MapStaticAssets();
@@ -115,12 +159,21 @@ try
         .AddInteractiveWebAssemblyRenderMode()
         .AddAdditionalAssemblies(typeof(Ray.BiliBiliTool.Web.Client._Imports).Assembly);
 
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
+    // API docs are off in production by default; enable explicitly with
+    // Security:EnableSwagger=true when needed
+    if (enableSwagger)
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "BiliBiliToolPro API V1");
-        c.RoutePrefix = "swagger";
-    });
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "BiliBiliToolPro API V1");
+            c.RoutePrefix = "swagger";
+        });
+    }
+    else
+    {
+        app.Logger.LogInformation("Security:EnableSwagger is off, skipping Swagger UI");
+    }
 
     app.Run();
 }

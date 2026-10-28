@@ -11,7 +11,7 @@ set -u
 set -o pipefail
 
 verbose=false                          # 开启debug日志
-bili_repo=${BILI_REPO:-"raywangqvq/bilibilitoolpro"} # 仓库地址
+bili_repo=${BILI_REPO:-"angussleeping/bilibilitoolpro"} # 仓库地址
 bili_branch=${BILI_BRANCH:-""}         # 分支名，空或_develop
 prefer_mode=${BILI_MODE:-"dotnet"}     # dotnet或bilitool，需要通过环境变量配置
 github_proxy=${BILI_GITHUB_PROXY:-""}  # 下载github release包时使用的代理，会拼在地址前面，需要通过环境变量配置
@@ -586,7 +586,7 @@ install() {
             install_dotnet || {
                 say_err "安装失败"
                 say_err "请根据文档自行在青龙容器中安装dotnet：https://learn.microsoft.com/zh-cn/dotnet/core/install/linux-$current_linux_os"
-                say_err "或者尝试切换运行模式为bilitool，它不需要安装dotnet：https://github.com/RayWangQvQ/BiliBiliToolPro/blob/main/platforms/qinglong/README.md"
+                say_err "或者尝试切换运行模式为bilitool，它不需要安装dotnet：https://github.com/angussleeping/BiliBiliToolPro/blob/main/platforms/qinglong/README.md"
                 return 1
             }
         fi
@@ -594,7 +594,7 @@ install() {
         if [ "$prefer_mode" == "bilitool" ]; then
             install_bilitool || {
                 say_err "安装失败，请检查日志并重试"
-                say_err "或者尝试切换运行模式为dotnet：https://github.com/RayWangQvQ/BiliBiliToolPro/blob/main/platforms/qinglong/README.md"
+                say_err "或者尝试切换运行模式为dotnet：https://github.com/angussleeping/BiliBiliToolPro/blob/main/platforms/qinglong/README.md"
             }
         fi
     fi

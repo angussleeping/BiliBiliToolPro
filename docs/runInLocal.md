@@ -1,6 +1,6 @@
 # Run the Console application locally or on a server
 
-Download a package from the [BiliBiliToolPro releases page](https://github.com/RayWangQvQ/BiliBiliToolPro/releases), extract it, and run the executable for your operating system. For a source checkout, install the .NET SDK specified in [`global.json`](../global.json) (`10.0.300` with compatible feature-band roll-forward), open `Ray.BiliBiliTool.sln` in your IDE, or run the Console project with `dotnet run --project src/Ray.BiliBiliTool.Console -- --runTasks=Login`. The Console `RunTasks` setting in `src/Ray.BiliBiliTool.Console/appsettings.json` selects which tasks to run; `--runTasks=Login` starts QR-code login.
+Download a package from the [BiliBiliToolPro releases page](https://github.com/angussleeping/BiliBiliToolPro/releases), extract it, and run the executable for your operating system. For a source checkout, install the .NET SDK specified in [`global.json`](../global.json) (`10.0.300` with compatible feature-band roll-forward), open `Ray.BiliBiliTool.sln` in your IDE, or run the Console project with `dotnet run --project src/Ray.BiliBiliTool.Console -- --runTasks=Login`. The Console `RunTasks` setting in `src/Ray.BiliBiliTool.Console/appsettings.json` selects which tasks to run; `--runTasks=Login` starts QR-code login.
 
 ## Contents
 
@@ -44,11 +44,11 @@ Scan the QR code to log in. You can also launch the executable directly and choo
 <a id="3-linux"></a>
 ## 3. Linux
 
-Download the matching self-contained asset (for example, `bilibili-tool-pro-v<version>-linux-x64.zip`) from [Releases](https://github.com/RayWangQvQ/BiliBiliToolPro/releases). For a known release version, substitute its actual version number below:
+Download the matching self-contained asset (for example, `bilibili-tool-pro-v<version>-linux-x64.zip`) from [Releases](https://github.com/angussleeping/BiliBiliToolPro/releases). For a known release version, substitute its actual version number below:
 
 ```bash
 VERSION=1.2.3 # replace with a published release version
-curl -fL -O "https://github.com/RayWangQvQ/BiliBiliToolPro/releases/download/${VERSION}/bilibili-tool-pro-v${VERSION}-linux-x64.zip"
+curl -fL -O "https://github.com/angussleeping/BiliBiliToolPro/releases/download/${VERSION}/bilibili-tool-pro-v${VERSION}-linux-x64.zip"
 unzip "bilibili-tool-pro-v${VERSION}-linux-x64.zip"
 cd linux-x64
 ./Ray.BiliBiliTool.Console --runTasks=Login

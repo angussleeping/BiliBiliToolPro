@@ -41,6 +41,7 @@ public partial class Login : ComponentBase
 
     private string? returnUrl;
     private bool _loginError = false;
+    private bool _loginLocked = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -55,5 +56,6 @@ public partial class Login : ComponentBase
         var state = LoginPageStateFactory.Create(uri);
         returnUrl = state.ReturnUrl;
         _loginError = state.HasLoginError;
+        _loginLocked = state.IsLocked;
     }
 }

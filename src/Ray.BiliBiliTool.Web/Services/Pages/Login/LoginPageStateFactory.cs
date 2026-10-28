@@ -18,15 +18,14 @@ public sealed class LoginPageStateFactory : ILoginPageStateFactory
             returnUrl = returnUrlParam.FirstOrDefault();
 
         bool hasLoginError = false;
-        if (
-            query.TryGetValue("error", out var errorParam)
-            && bool.TryParse(errorParam.FirstOrDefault(), out var parsed)
-            && parsed
-        )
+        bool isLocked = false;
+        if (query.TryGetValue("error", out var errorParam))
         {
-            hasLoginError = true;
+            var error = errorParam.FirstOrDefault();
+            isLocked = string.Equals(error, "locked", StringComparison.OrdinalIgnoreCase);
+            hasLoginError = !isLocked && bool.TryParse(error, out var parsed) && parsed;
         }
 
-        return new LoginPageState(returnUrl, hasLoginError);
+        return new LoginPageState(returnUrl, hasLoginError, isLocked);
     }
 }

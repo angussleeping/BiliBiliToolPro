@@ -20,7 +20,7 @@ set -u
 set -o pipefail
 
 verbose=false                          # 开启debug日志
-bili_repo="raywangqvq/bilibilitoolpro" # 仓库地址（bilitool 模式下载 release 用）
+bili_repo=${BILI_REPO:-"angussleeping/bilibilitoolpro"} # 仓库地址（bilitool 模式下载 release 用）
 prefer_mode=${BILI_MODE:-"dotnet"}     # dotnet 或 bilitool，可通过面板环境变量 BILI_MODE 配置
 github_proxy=${BILI_GITHUB_PROXY:-""}  # 下载 github release 包时使用的代理，拼在地址前面
 export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 # 解决 ICU 相关抽风问题
@@ -308,7 +308,7 @@ install_dotnet() {
 get_download_url() {
     eval $invocation
     tag=$1
-    url="${github_proxy}https://github.com/RayWangQvQ/BiliBiliToolPro/releases/download/$tag/bilibili-tool-pro-v$tag-$current_os-$machine_architecture.zip"
+    url="${github_proxy}https://github.com/${bili_repo}/releases/download/$tag/bilibili-tool-pro-v$tag-$current_os-$machine_architecture.zip"
     say "下载地址：$url"
     echo $url
     return 0
@@ -345,14 +345,14 @@ install() {
         if [ "$prefer_mode" == "dotnet" ]; then
             install_dotnet || {
                 say_err "安装失败，请根据文档自行在面板容器中安装dotnet，或切换为 bilitool 模式"
-                say_err "文档：https://github.com/RayWangQvQ/BiliBiliToolPro/blob/main/platforms/daidai/README.md"
+                say_err "文档：https://github.com/angussleeping/BiliBiliToolPro/blob/main/platforms/daidai/README.md"
                 return 1
             }
         fi
         if [ "$prefer_mode" == "bilitool" ]; then
             install_bilitool || {
                 say_err "安装失败，请检查日志并重试，或切换为 dotnet 模式"
-                say_err "文档：https://github.com/RayWangQvQ/BiliBiliToolPro/blob/main/platforms/daidai/README.md"
+                say_err "文档：https://github.com/angussleeping/BiliBiliToolPro/blob/main/platforms/daidai/README.md"
             }
         fi
     fi

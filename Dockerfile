@@ -60,6 +60,15 @@ FROM base AS final
 ARG VERSION=""
 LABEL org.opencontainers.image.version="${VERSION}"
 WORKDIR /app
+ENV Security__DataProtectionKeysDirectory=/app/keys
 COPY --from=build /app/publish .
 COPY --from=build /code/platforms/docker/entrypoint.sh /app/entrypoint.sh
+
+# gosu lets the entrypoint drop from root to PUID/PGID after fixing ownership of
+# mounted dirs; chmod in the final layer runs on BUILDPLATFORM-compatible binaries
+# only (gosu is not executed at build time), so cross-build still needs no QEMU
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gosu \
+    && rm -rf /var/lib/apt/lists/* \
+    && chmod +x /app/entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]

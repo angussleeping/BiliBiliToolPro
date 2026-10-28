@@ -8,13 +8,13 @@ On the **Script Library Sync** page, import one of these task definitions. The h
 
 ```text
 Name: Pull Bili repository (include dev; legacy label)
-Command: baihu reposync --source-type git --source-url https://github.com/RayWangQvQ/BiliBiliToolPro.git --pre-command "bash platforms/baihu/copyshfile.sh"  --blacklist platforms/qinglong/DefaultTasks|.git --task-timeout 30 --task-langs '[{"name":"dotnet","version":"10.0"}]'
+Command: baihu reposync --source-type git --source-url https://github.com/angussleeping/BiliBiliToolPro.git --pre-command "bash platforms/baihu/copyshfile.sh"  --blacklist platforms/qinglong/DefaultTasks|.git --task-timeout 30 --task-langs '[{"name":"dotnet","version":"10.0"}]'
 Schedule: 2 3 28 * *
 ```
 
 ```text
 Name: Pull Bili repository (exclude dev; legacy label)
-Command: baihu reposync --source-type git --source-url https://github.com/RayWangQvQ/BiliBiliToolPro.git --pre-command "bash platforms/baihu/copyshfile.sh"  --blacklist platforms/qinglong/DefaultTasks|.git|platforms/baihu/DefaultTasks/dev --task-timeout 30 --task-langs '[{"name":"dotnet","version":"10.0"}]'
+Command: baihu reposync --source-type git --source-url https://github.com/angussleeping/BiliBiliToolPro.git --pre-command "bash platforms/baihu/copyshfile.sh"  --blacklist platforms/qinglong/DefaultTasks|.git|platforms/baihu/DefaultTasks/dev --task-timeout 30 --task-langs '[{"name":"dotnet","version":"10.0"}]'
 Schedule: 2 3 28 * *
 ```
 
@@ -45,7 +45,7 @@ For more accounts, use `Ray_BiliBiliCookies__1`, `Ray_BiliBiliCookies__2`, and s
 For slow repository pulls, a third-party proxy prefix may help, for example:
 
 ```text
-https://gh-proxy.com/https://github.com/RayWangQvQ/BiliBiliToolPro.git
+https://gh-proxy.com/https://github.com/angussleeping/BiliBiliToolPro.git
 ```
 
 Proxy availability varies.

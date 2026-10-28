@@ -905,7 +905,7 @@ public class LoginDomainService(
             logger.LogWarning("未配置青龙的ClientId和ClientSecret，无法自动获取token");
             logger.LogWarning(
                 "教程：{qingDoc}",
-                "https://github.com/RayWangQvQ/BiliBiliToolPro/blob/main/platforms/qinglong/README.md"
+                "https://github.com/angussleeping/BiliBiliToolPro/blob/main/platforms/qinglong/README.md"
             );
             return "";
         }
@@ -929,7 +929,7 @@ public class LoginDomainService(
             logger.LogWarning("未配置呆呆面板的AppKey和AppSecret，无法自动获取token");
             logger.LogWarning(
                 "教程：{daidaiDoc}",
-                "https://github.com/RayWangQvQ/BiliBiliToolPro/blob/develop/platforms/daidai/README.md"
+                "https://github.com/angussleeping/BiliBiliToolPro/blob/main/platforms/daidai/README.md"
             );
             return "";
         }

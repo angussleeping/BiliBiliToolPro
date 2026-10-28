@@ -54,7 +54,7 @@ Under **Subscription Management**, create:
 ```text
 Name: Bilibili
 Type: Git repository (public)
-URL: https://github.com/RayWangQvQ/BiliBiliToolPro.git
+URL: https://github.com/angussleeping/BiliBiliToolPro.git
 Branch: main
 Schedule type: crontab
 Schedule: 2 2 28 * *
@@ -84,14 +84,14 @@ The old note that *all* binaries lack Daidai support is release-dependent: check
 
 ## Early builds
 
-The repository pulls from `main`; the former `develop` branch and `dev/bili_dev_task_*.sh` scripts are gone. Unreleased alpha builds publish `zai7lou/bili_tool_web:alpha` as a **Docker image**, not a `bilitool` binary.
+The repository pulls from `main`; the former `develop` branch and `dev/bili_dev_task_*.sh` scripts are gone. Unreleased alpha builds publish `ghcr.io/angussleeping/bili_tool_web:alpha` as a **Docker image**, not a `bilitool` binary.
 
 ## GitHub proxies
 
 For slow pulls, a proxy-prefixed subscription URL may help:
 
 ```text
-https://gh-proxy.com/https://github.com/RayWangQvQ/BiliBiliToolPro.git
+https://gh-proxy.com/https://github.com/angussleeping/BiliBiliToolPro.git
 ```
 
 Set `BILI_GITHUB_PROXY` for binary downloads in `bilitool` mode. Third-party proxy uptime is not guaranteed.
