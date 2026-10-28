@@ -3,7 +3,6 @@
 public enum PlatformType
 {
     Unknown,
-    GitHubActions,
     Docker,
     QingLong,
     Web,

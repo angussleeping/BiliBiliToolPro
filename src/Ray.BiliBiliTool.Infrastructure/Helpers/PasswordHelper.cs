@@ -2,32 +2,36 @@ using System.Security.Cryptography;
 
 namespace Ray.BiliBiliTool.Infrastructure.Helpers;
 
-public class PasswordHelper
+public static class PasswordHelper
 {
+    private const int SaltSize = 16;
+    private const int HashSize = 32;
+    private const int Iterations = 100_000;
+
     public static (string hash, string salt) HashPassword(string password)
     {
-        byte[] saltBytes = RandomNumberGenerator.GetBytes(16);
-        string salt = Convert.ToBase64String(saltBytes);
-        string hash = ComputeHash(password, salt);
-        return (hash, salt);
+        string salt = Convert.ToBase64String(RandomNumberGenerator.GetBytes(SaltSize));
+        return (ComputeHash(password, salt), salt);
     }
 
     public static bool VerifyPassword(string password, string salt, string hash)
     {
-        string computedHash = ComputeHash(password, salt);
-        return computedHash == hash;
+        byte[] computed = Convert.FromBase64String(ComputeHash(password, salt));
+        byte[] expected = Convert.FromBase64String(hash);
+
+        return CryptographicOperations.FixedTimeEquals(computed, expected);
     }
 
     private static string ComputeHash(string password, string salt)
     {
         byte[] saltBytes = Convert.FromBase64String(salt);
-        using var pbkdf2 = new Rfc2898DeriveBytes(
+        byte[] hashBytes = Rfc2898DeriveBytes.Pbkdf2(
             password,
             saltBytes,
-            100_000,
-            HashAlgorithmName.SHA256
+            Iterations,
+            HashAlgorithmName.SHA256,
+            HashSize
         );
-        byte[] hashBytes = pbkdf2.GetBytes(32);
 
         return Convert.ToBase64String(hashBytes);
     }

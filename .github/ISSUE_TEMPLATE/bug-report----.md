@@ -33,7 +33,6 @@ BiliTool版本号：`x.x.x`
 - [ ] Linux
     - [ ] Debian
     - [ ] Ubuntu
-    - [ ] Windows
     - [ ] Alpine
     - [ ] Centos
     - [ ] 其他（请在下面补充）
@@ -41,7 +40,7 @@ BiliTool版本号：`x.x.x`
 ### 选择的BiliTool运行模式
 
 - [ ] docker
-- [ ] podman
+- [ ] 青龙 / 呆呆等自动化面板
 - [ ] 下载的Release包
 - [ ] 其他（请在下面补充）
 

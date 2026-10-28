@@ -24,15 +24,16 @@ COPY ["src/BlazingQuartz.Jobs.Abstractions/BlazingQuartz.Jobs.Abstractions.cspro
 RUN dotnet restore "src/Ray.BiliBiliTool.Web/Ray.BiliBiliTool.Web.csproj"
 COPY . .
 WORKDIR "/code/src/Ray.BiliBiliTool.Web"
-RUN dotnet build "Ray.BiliBiliTool.Web.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Ray.BiliBiliTool.Web.csproj" -c Release -o /app/publish
+RUN dotnet publish "Ray.BiliBiliTool.Web.csproj" -c Release --no-restore -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 COPY docker/entrypoint.sh /app/entrypoint.sh
-RUN rm -rf /var/lib/apt/lists/* \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gosu \
+    && rm -rf /var/lib/apt/lists/* \
     && chmod +x /app/entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]

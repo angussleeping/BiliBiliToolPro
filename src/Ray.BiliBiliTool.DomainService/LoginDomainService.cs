@@ -150,14 +150,20 @@ public class LoginDomainService(
         try
         {
             var path = hostingEnvironment.ContentRootPath;
-            
-            if (string.Equals(configuration["PlatformType"], "Web", StringComparison.OrdinalIgnoreCase))
+
+            if (
+                string.Equals(
+                    configuration["PlatformType"],
+                    "Web",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
             {
                 path = Path.Combine(path, "config");
             }
-            
+
             Directory.CreateDirectory(path);
-            
+
             var cookieFilePath = Path.Combine(path, "cookies.json");
             logger.LogInformation("目标json地址：{path}", cookieFilePath);
 
@@ -169,7 +175,9 @@ public class LoginDomainService(
             }
 
             string json;
-            await using (var stream = new FileStream(cookieFilePath, FileMode.Open, FileAccess.ReadWrite))
+            await using (
+                var stream = new FileStream(cookieFilePath, FileMode.Open, FileAccess.ReadWrite)
+            )
             {
                 using var reader = new StreamReader(stream);
                 json = await reader.ReadToEndAsync();
@@ -422,7 +430,7 @@ public class LoginDomainService(
             logger.LogWarning("未配置青龙的ClientId和ClientSecret，无法自动获取token");
             logger.LogWarning(
                 "教程：{qingDoc}",
-                "https://github.com/RayWangQvQ/BiliBiliToolPro/blob/main/qinglong/README.md"
+                "https://github.com/angussleeping/BiliBiliToolPro/blob/main/qinglong/README.md"
             );
             return "";
         }

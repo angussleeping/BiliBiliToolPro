@@ -27,7 +27,7 @@ apt-get install curl
 ## 2. 方式一：一键脚本(推荐)
 
 ```
-bash <(curl -sSL https://raw.githubusercontent.com/RayWangQvQ/BiliBiliToolPro/main/docker/install.sh)
+bash <(curl -sSL https://raw.githubusercontent.com/angussleeping/BiliBiliToolPro/main/docker/install.sh)
 ```
 
 ## 3. 方式二：手动 Docker Compose
@@ -39,10 +39,10 @@ bash <(curl -sSL https://raw.githubusercontent.com/RayWangQvQ/BiliBiliToolPro/ma
 mkdir bili_tool_web && cd bili_tool_web
 
 # 下载
-wget https://raw.githubusercontent.com/RayWangQvQ/BiliBiliToolPro/main/docker/sample/docker-compose.yml
+wget https://raw.githubusercontent.com/angussleeping/BiliBiliToolPro/main/docker/sample/docker-compose.yml
 mkdir -p config
 cd ./config
-wget https://raw.githubusercontent.com/RayWangQvQ/BiliBiliToolPro/main/docker/sample/config/cookies.json
+wget https://raw.githubusercontent.com/angussleeping/BiliBiliToolPro/main/docker/sample/config/cookies.json
 cd ..
 
 # 启动
@@ -90,13 +90,13 @@ docker compose pull && docker compose up -d
 mkdir bili_tool_web && cd bili_tool_web
 
 # 生成并运行容器
-docker pull ghcr.io/raywangqvq/bili_tool_web
+docker pull ghcr.io/angussleeping/bili_tool_web
 docker run -d --name="bili_tool_web" \
     -p 22330:8080 \
     -e TZ=Asia/Shanghai \
     -v ./Logs:/app/Logs \
     -v ./config:/app/config \
-    ghcr.io/raywangqvq/bili_tool_web
+    ghcr.io/angussleeping/bili_tool_web
 
 # 查看实时日志
 docker logs -f bili_tool_web
@@ -139,7 +139,36 @@ docker run --rm \
 
 首次登陆后，请到`Admin`页面修改密码。
 
-## 6. 添加 Bili 账号
+也可以在部署时通过环境变量 `Security__DefaultAdminPassword` 指定初始密码（仅在首次初始化数据库时生效）。
+
+连续登录失败 5 次后，登录会被暂时锁定 5 分钟（按来源 IP 统计）。
+
+## 6. 安全加固（公网部署建议）
+
+### 6.1. 使用非 root 运行
+
+容器启动脚本会在以 root 启动时先修正 `/app/config`、`/app/Logs` 的属主，再以普通用户身份运行应用（默认 `1000:1000`）。如需与宿主机目录属主对齐，设置：
+
+```
+PUID=1001
+PGID=1001
+```
+
+### 6.2. 反向代理 + HTTPS
+
+默认只提供 HTTP。公网部署建议在前面挂 Nginx/Caddy/Traefik 做 HTTPS，并打开以下两个开关：
+
+```
+Security__UseForwardedHeaders=true   # 识别真实协议与客户端 IP（限流按真实 IP 统计）
+Security__RequireHttps=true          # 登录 Cookie 仅通过 HTTPS 传输
+```
+
+说明：
+
+- `Security__RequireHttps=true` 后，必须已存在可用的 HTTPS 入口，否则无法登录；
+- 开启 `UseForwardedHeaders` 会信任所有代理转发的 `X-Forwarded-For` / `X-Forwarded-Proto`，请确保容器端口 22330 不直接暴露到公网。
+
+## 7. 添加 Bili 账号
 
 扫码进行账号添加。
 
@@ -147,12 +176,11 @@ docker run --rm \
 
 ![login](../docs/imgs/docker-login.png)
 
-## 7. 自己构建镜像（非必须）
+## 8. 自己构建镜像（非必须）
 
-目前我提供和维护的镜像：
+本仓库通过 `publish-image.yml` 构建并推送镜像，默认地址：
 
-- DockerHub: `[zai7lou/bili_tool_web](https://hub.docker.com/repository/docker/zai7lou/bili_tool_web)`
-- GitHub: `[bili_tool_web](https://github.com/RayWangQvQ/BiliBiliToolPro/pkgs/container/bili_tool_web)`
+- GitHub: [ghcr.io/angussleeping/bili_tool_web](https://github.com/angussleeping/BiliBiliToolPro/pkgs/container/bili_tool_web)
 
 如果有需要（大部分都不需要），可以使用源码自己构建镜像，如下：
 
@@ -162,7 +190,14 @@ docker run --rm \
 
 `TARGET_NAME`为镜像名称和版本，可以自己起个名字
 
-## 8. 其他
+构建并推送到自己的镜像仓库后，可以通过环境变量指定一键脚本使用的镜像：
+
+```
+BILI_IMAGE=ghcr.io/<你的用户名>/bili_tool_web \
+bash <(curl -sSL https://raw.githubusercontent.com/angussleeping/BiliBiliToolPro/main/docker/install.sh)
+```
+
+## 9. 其他
 
 代码编译和发布环境: mcr.microsoft.com/dotnet/sdk:8.0
 

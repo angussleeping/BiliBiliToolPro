@@ -116,17 +116,6 @@ publish_self_contained() {
     echo -e "---------publish successfully---------\n\n"
 }
 
-publish_tencentScf() {
-    echo "---------start publishing 【tencent scf】 release---------"
-    cd $publishDir
-    cp -r $repoDir/tencentScf/bootstrap $repoDir/tencentScf/index.sh ./linux-x64/
-    cd ./linux-x64
-    chmod 755 index.sh bootstrap
-    zip -r ../bilibili-tool-pro-v$version-tencent-scf.zip ./*
-    cd .. && ls
-    echo -e "---------publish successfully---------\n\n"
-}
-
 main() {
     read_params_from_init_cmd $*
     read_var_from_user
@@ -146,10 +135,6 @@ main() {
     for i in "${array[@]}"; do
         publish_self_contained $i
     done
-
-    if [ "$runTime" == "all" ]; then
-        publish_tencentScf
-    fi
 }
 
 main $*

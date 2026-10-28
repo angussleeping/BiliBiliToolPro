@@ -13,3 +13,9 @@ Dockerfile
 
 [b|B]in
 [O|o]bj
+
+# 与镜像构建无关的内容
+docs
+test
+bruno
+.husky

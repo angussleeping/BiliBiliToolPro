@@ -21,9 +21,10 @@ current_dir=$(pwd)
 base_dir="${current_dir}/bili_tool_web"
 github_proxy=""
 github_branch="main"
-remote_compose_url="${github_proxy}https://raw.githubusercontent.com/RayWangQvQ/BiliBiliToolPro/refs/heads/${github_branch}/docker/sample/docker-compose.yml"
-remote_ckJson_url="${github_proxy}https://raw.githubusercontent.com/RayWangQvQ/BiliBiliToolPro/refs/heads/${github_branch}/docker/sample/config/cookies.json"
-docker_img_name="ghcr.io/raywangqvq/bili_tool_web"
+remote_repo="${BILI_REPO:-angussleeping/BiliBiliToolPro}"
+remote_compose_url="${github_proxy}https://raw.githubusercontent.com/${remote_repo}/refs/heads/${github_branch}/docker/sample/docker-compose.yml"
+remote_ckJson_url="${github_proxy}https://raw.githubusercontent.com/${remote_repo}/refs/heads/${github_branch}/docker/sample/config/cookies.json"
+docker_img_name="${BILI_IMAGE:-ghcr.io/angussleeping/bili_tool_web}"
 container_name="bili_tool_web"
 
 ### infra
@@ -246,7 +247,7 @@ installDocker() {
         say_warning "未安装docker，尝试安装"
         download "https://get.docker.com" ./get-docker.sh
         chmod +x ./get-docker.sh
-        get-docker.sh
+        ./get-docker.sh
 
         if machine_has "docker"; then
             say_info "已安装docker"
@@ -264,13 +265,17 @@ downloadResources() {
     say_info "开始下载资源"
 
     # docker compose
-    [ -f "docker-compose.yml" ] || download $remote_compose_url ./docker-compose.yml
+    if [ ! -f "docker-compose.yml" ]; then
+        download $remote_compose_url ./docker-compose.yml
+        # 让 compose 使用与 docker pull 一致的镜像，保证 BILI_IMAGE 生效
+        sed "s|^[[:space:]]*image:.*|    image: ${docker_img_name}|" docker-compose.yml >docker-compose.yml.tmp
+        mv docker-compose.yml.tmp docker-compose.yml
+    fi
 
     # ckJson
     mkdir -p config
     cd ./config
     [ -f "cookies.json" ] || download $remote_ckJson_url ./cookies.json
-    chmod +x ./cookies.json
     cd ..
 
     ls -l
@@ -313,7 +318,7 @@ checkResult() {
         echo "==============================================="
         echo "Congratulations! 恭喜！"
         echo "创建并运行${container_name}容器成功。"
-        echo "访问地址：http:{ip}:22330"
+        echo "访问地址：http://<服务器IP>:22330"
         echo "云服务器防火墙请自行开放22330端口"
         echo "首次运行后，请执行扫码登录任务添加账号"
         echo "Enjoy it~"

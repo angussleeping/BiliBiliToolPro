@@ -1,5 +1,6 @@
 using BlazingQuartz;
 using BlazingQuartz.Core;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi.Models;
 using MudBlazor.Services;
 using Quartz;
@@ -26,6 +27,9 @@ try
 
     builder.Configuration.AddJsonFile("config/cookies.json", optional: true, reloadOnChange: true);
     var sqliteConnStr = builder.Configuration.GetConnectionString("Sqlite");
+    var sqliteDbPath = string.IsNullOrEmpty(sqliteConnStr)
+        ? null
+        : new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(sqliteConnStr).DataSource;
     if (!string.IsNullOrEmpty(sqliteConnStr))
     {
         builder.Configuration.AddSqlite(
@@ -55,7 +59,7 @@ try
                 Contact = new OpenApiContact
                 {
                     Name = "BiliBiliToolPro",
-                    Url = new Uri("https://github.com/RayWangQvQ/BiliBiliToolPro"),
+                    Url = new Uri("https://github.com/angussleeping/BiliBiliToolPro"),
                 },
             }
         );
@@ -72,7 +76,7 @@ try
                 .ReadFrom.Services(services)
                 .Enrich.FromLogContext()
                 .WriteTo.SQLite(
-                    sqliteDbPath: sqliteConnStr?.Split(';')[0].Split('=')[1],
+                    sqliteDbPath: sqliteDbPath,
                     tableName: "bili_logs",
                     storeTimestampInUtc: true,
                     batchSize: 7
@@ -84,7 +88,6 @@ try
         builder.Configuration.GetSection("BlazingQuartz")
     );
     builder.Services.AddBlazingQuartz();
-    builder.Services.AddMudServices();
 
     builder.Services.AddQuartz(q =>
     {
@@ -106,7 +109,7 @@ try
 
     builder
         .Services.AddWebServices()
-        .AddAuthServices()
+        .AddAuthServices(builder.Configuration)
         .AddAppServices()
         .AddDomainServices()
         .AddBiliBiliConfigs(builder.Configuration)
@@ -118,7 +121,19 @@ try
 
     using var scope = app.Services.CreateScope();
     var dbInitializer = scope.ServiceProvider.GetRequiredService<DbInitializer>();
-    dbInitializer.InitializeAsync().Wait();
+    await dbInitializer.InitializeAsync();
+
+    // 反向代理（Nginx/Caddy/Traefik 等）后面部署时开启，才能正确识别 HTTPS 与真实客户端 IP
+    if (builder.Configuration.GetValue<bool>("Security:UseForwardedHeaders"))
+    {
+        var forwardedHeadersOptions = new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+        };
+        forwardedHeadersOptions.KnownNetworks.Clear();
+        forwardedHeadersOptions.KnownProxies.Clear();
+        app.UseForwardedHeaders(forwardedHeadersOptions);
+    }
 
     if (app.Environment.IsDevelopment())
     {

@@ -1,6 +1,6 @@
 services:
   bili_tool_web:
-    image: ghcr.io/raywangqvq/bili_tool_web
+    image: ghcr.io/angussleeping/bili_tool_web
     container_name: bili_tool_web
     restart: unless-stopped
     tty: true
@@ -11,4 +11,13 @@ services:
       - "22330:8080"
     environment:
       TZ: "Asia/Shanghai"
+      # 容器内应用运行身份，与宿主机挂载目录属主保持一致即可
+      # PUID: "1000"
+      # PGID: "1000"
+      # 首次初始化数据库时的管理员初始密码，建议自定义；初始化后此项不再生效
+      # Security__DefaultAdminPassword: "ChangeMe@123"
+      # 经 Nginx/Caddy/Traefik 等反向代理并启用 HTTPS 时打开，用于识别真实协议与客户端 IP
+      # Security__UseForwardedHeaders: "true"
+      # 强制 HTTPS：Cookie 仅通过 HTTPS 传输（必须已有 HTTPS 入口，否则无法登录）
+      # Security__RequireHttps: "true"
       DailyTaskConfig__Cron: "0 0 15 * * ?"

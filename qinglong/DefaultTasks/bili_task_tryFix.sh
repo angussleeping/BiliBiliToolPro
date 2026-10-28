@@ -6,7 +6,7 @@ dir_shell=$QL_DIR/shell
 . $dir_shell/share.sh
 . /root/.bashrc
 
-bili_repo="raywangqvq_bilibilitoolpro"
+bili_repo="angussleeping_bilibilitoolpro"
 bili_branch=""
 
 echo "青龙repo目录: $dir_repo"

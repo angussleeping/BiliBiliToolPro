@@ -8,7 +8,7 @@ namespace Ray.BiliBiliTool.Web.Controllers;
 
 [ApiController]
 [Route("auth")]
-public class AuthController(IAuthService authService) : ControllerBase
+public class AuthController(IAuthService authService, LoginThrottle loginThrottle) : ControllerBase
 {
     [HttpPost("login")]
     public async Task<IActionResult> Login(
@@ -17,10 +17,20 @@ public class AuthController(IAuthService authService) : ControllerBase
         [FromForm] string? returnUrl
     )
     {
+        var throttleKey = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        if (loginThrottle.IsLocked(throttleKey))
+        {
+            return Redirect(
+                $"/login?error=locked&returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}"
+            );
+        }
+
         var claimsIdentity = await authService.LoginAsync(username, password);
 
         if (claimsIdentity.IsAuthenticated)
         {
+            loginThrottle.Reset(throttleKey);
+
             var authProperties = new AuthenticationProperties
             {
                 IsPersistent = true,
@@ -39,6 +49,7 @@ public class AuthController(IAuthService authService) : ControllerBase
             return Redirect(returnUrl);
         }
 
+        loginThrottle.RegisterFailure(throttleKey);
         return Redirect($"/login?error=true&returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}");
     }
 

@@ -80,17 +80,12 @@ public class ChargeTaskAppService(
 
     private async Task SaveCookieAsync(BiliCookie ckInfo, CancellationToken cancellationToken)
     {
-        var platformType = configuration.GetSection("PlatformType").Get<PlatformType>();
-        logger.LogInformation("当前运行平台：{platform}", platformType);
-
-        //更新cookie到青龙env
-        if (platformType == PlatformType.QingLong)
-        {
-            await loginDomainService.SaveCookieToQinLongAsync(ckInfo, cancellationToken);
-            return;
-        }
-
-        //更新cookie到json
-        await loginDomainService.SaveCookieToJsonFileAsync(ckInfo, cancellationToken);
+        await CookieSavingHelper.SaveAsync(
+            configuration,
+            logger,
+            loginDomainService,
+            ckInfo,
+            cancellationToken
+        );
     }
 }

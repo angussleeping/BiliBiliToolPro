@@ -34,6 +34,7 @@ public partial class Login : ComponentBase
 
     private string? returnUrl;
     private bool _loginError = false;
+    private bool _loginLocked = false;
 
     protected override void OnInitialized()
     {
@@ -43,9 +44,11 @@ public partial class Login : ComponentBase
         {
             returnUrl = param.First();
         }
-        if (query.TryGetValue("error", out var errorParam) && bool.TryParse(errorParam.FirstOrDefault(), out var parsed) && parsed)
+        if (query.TryGetValue("error", out var errorParam))
         {
-            _loginError = true;
+            var error = errorParam.FirstOrDefault();
+            _loginLocked = string.Equals(error, "locked", StringComparison.OrdinalIgnoreCase);
+            _loginError = !_loginLocked && bool.TryParse(error, out var parsed) && parsed;
         }
     }
 }

@@ -10,8 +10,8 @@ set -u
 # This is causing it to fail
 set -o pipefail
 
-verbose=false                          # 开启debug日志
-bili_repo="raywangqvq/bilibilitoolpro" # 仓库地址
+verbose=false                                       # 开启debug日志
+bili_repo=${BILI_REPO:-"angussleeping/bilibilitoolpro"} # 仓库地址（owner/repo）
 bili_branch=""                         # 分支名，空或_develop
 prefer_mode=${BILI_MODE:-"dotnet"}     # dotnet或bilitool，需要通过环境变量配置
 github_proxy=${BILI_GITHUB_PROXY:-""}  # 下载github release包时使用的代理，会拼在地址前面，需要通过环境变量配置
@@ -146,7 +146,7 @@ get_linux_platform_name() {
         fi
     fi
 
-    echo "Linux specific platform name and version could not be detected: UName = $uname"
+    echo "Linux specific platform name and version could not be detected: UName = $(uname)"
     return 1
 }
 
@@ -191,7 +191,7 @@ get_current_os_name() {
         fi
     fi
 
-    say_err "OS name could not be detected: UName = $uname"
+    say_err "OS name could not be detected: UName = $(uname)"
     return 1
 }
 
@@ -251,7 +251,7 @@ check_unzip() {
         fi
     else
         if ! machine_has unzip; then
-            say "jq未安装，开始安装依赖..."
+            say "unzip未安装，开始安装依赖..."
             apk update
             apk add -y unzip
         fi
@@ -343,7 +343,7 @@ install_dotnet() {
     if [[ $current_linux_os == "debian" ]]; then
         say "使用apt安装"
 
-        if ! (curl -s -m 5 www.google.com >/dev/nul); then
+        if ! (curl -s -m 5 www.google.com >/dev/null); then
             say "机器位于墙内，切换为包源为国内镜像源"
             cp /etc/apt/sources.list /etc/apt/sources.list.bak
             sed -i 's/https:\/\/deb.debian.org/https:\/\/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
@@ -361,7 +361,7 @@ install_dotnet() {
         }
     else
         say "使用apk安装"
-        if ! (curl -s -m 5 www.google.com >/dev/nul); then
+        if ! (curl -s -m 5 www.google.com >/dev/null); then
             say "机器位于墙内，切换为包源为国内镜像源"
             cp /etc/apk/repositories /etc/apk/repositories.bak
             sed -i 's/https:\/\/dl-cdn.alpinelinux.org/https:\/\/mirrors.ustc.edu.cn/g' /etc/apk/repositories
@@ -383,7 +383,7 @@ get_download_url() {
     eval $invocation
 
     tag=$1
-    url="${github_proxy}https://github.com/RayWangQvQ/BiliBiliToolPro/releases/download/$tag/bilibili-tool-pro-v$tag-$current_os-$machine_architecture.zip"
+    url="${github_proxy}https://github.com/${bili_repo}/releases/download/$tag/bilibili-tool-pro-v$tag-$current_os-$machine_architecture.zip"
     say "下载地址：$url"
     echo $url
     return 0
@@ -436,14 +436,14 @@ install() {
             install_dotnet || {
                 say_err "安装失败"
                 say_err "请根据文档自行在青龙容器中安装dotnet：https://learn.microsoft.com/zh-cn/dotnet/core/install/linux-$current_linux_os"
-                say_err "或者尝试切换运行模式为bilitool，它不需要安装dotnet：https://github.com/RayWangQvQ/BiliBiliToolPro/blob/develop/qinglong/README.md"
+                say_err "或者尝试切换运行模式为bilitool，它不需要安装dotnet：https://github.com/angussleeping/BiliBiliToolPro/blob/main/qinglong/README.md"
             }
         fi
 
         if [ "$prefer_mode" == "bilitool" ]; then
             install_bilitool || {
                 say_err "安装失败，请检查日志并重试"
-                say_err "或者尝试切换运行模式为dotnet：https://github.com/RayWangQvQ/BiliBiliToolPro/blob/develop/qinglong/README.md"
+                say_err "或者尝试切换运行模式为dotnet：https://github.com/angussleeping/BiliBiliToolPro/blob/main/qinglong/README.md"
             }
         fi
     fi

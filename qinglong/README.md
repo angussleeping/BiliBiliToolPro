@@ -44,7 +44,7 @@
 ```
 名称：Bilibili
 类型：公开仓库
-链接：https://github.com/RayWangQvQ/BiliBiliToolPro.git
+链接：https://github.com/angussleeping/BiliBiliToolPro.git
 定时类型：crontab
 定时规则：2 2 28 * *
 白名单：bili_task_.+\.sh
@@ -60,7 +60,7 @@
 
 ```
 名称：拉取Bili库
-命令：ql repo https://github.com/RayWangQvQ/BiliBiliToolPro.git "bili_task_"
+命令：ql repo https://github.com/angussleeping/BiliBiliToolPro.git "bili_task_"
 定时规则：2 2 28 * *
 ```
 
@@ -113,16 +113,7 @@ Name分别为：
 
 ## 2. 先行版
 
-青龙拉库时可以指定分支，develop分支的代码会超前于默认的main分支，包含当前正在开发的新功能。
-
-想提前体验新功能，或想要Bug能快速得到解决的朋友，可以尝试切换先行版，但同时也意味着稳定性会相应降低（其实可以忽略不计~🤨）。
-
-```
-分支：develop
-白名单：bili_dev_task_.+\.sh
-```
-
-其他选项同上。
+本仓库只维护 `main` 分支，不再提供 `develop` 先行版分支，拉库时保持默认分支即可。
 
 ## 3. GitHub加速
 
@@ -131,8 +122,8 @@ Name分别为：
 如：
 
 ```
-https://github.moeyy.xyz/https://github.com/RayWangQvQ/BiliBiliToolPro.git
-https://gh-proxy.com/https://github.com/RayWangQvQ/BiliBiliToolPro.git
+https://github.moeyy.xyz/https://github.com/angussleeping/BiliBiliToolPro.git
+https://gh-proxy.com/https://github.com/angussleeping/BiliBiliToolPro.git
 ...
 ```
 
