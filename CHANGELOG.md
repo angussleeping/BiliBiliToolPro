@@ -1,3 +1,17 @@
+## 4.2.4
+- feat: 持久化 DataProtection 密钥并恢复 keys 挂载
+- feat: 恢复定时任务的随机延时运行
+- fix: 目标任务配置缺失时避免空引用
+- fix: 加固剩余代码的健壮性与暴露面
+- docs(docker): mount /app/keys to persist DataProtection keys
+- Merge old main history into upstream rebuild
+- Rebuild fork on upstream/main and re-apply fork customizations
+- ci: 支持仅推送 GHCR 并补充 packages 写权限
+- chore: 精简部署方式并加固安全
+- chore: upgrade Ray.Infrastructure to 0.1.1 and migrate to System.Text.Json (#1242)
+- chore: bump Ray.Serilog.Sinks.*Batched to 0.1.6 (#1243)
+- docs(changelog): 4.2.3 (#1241)
+- Refactor cookie handling and file path management
 ## 4.2.3
 - feat(live-lottery): pre-filter TianXuan by pendant 504/1432 + live list API v3 (#1092)
 - fix: view 接口改用 WBI 签名，修复 -412 (request was banned) (#1239)
