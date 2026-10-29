@@ -1,3 +1,4 @@
+using System.Net;
 using BlazingQuartz;
 using BlazingQuartz.Core;
 using Microsoft.AspNetCore.DataProtection;
@@ -21,10 +22,6 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    var requireHttps = builder.Configuration.GetValue<bool>("Security:RequireHttps");
-    var enableSwagger =
-        builder.Environment.IsDevelopment()
-        || builder.Configuration.GetValue<bool>("Security:EnableSwagger");
     var sqliteConnStr = builder.Configuration.GetConnectionString("Sqlite");
     // Parse the DataSource via the connection-string builder instead of naive
     // Split('=')/Split(';') so values containing delimiters survive
@@ -41,6 +38,12 @@ try
         );
         BiliAccountPageWorkflow.CompactStoredAccounts(builder.Configuration);
     }
+
+    // 启动期安全开关统一在 AddSqlite 之后读取，保证面板里存的配置与环境变量一视同仁
+    var requireHttps = builder.Configuration.GetValue<bool>("Security:RequireHttps");
+    var enableSwagger =
+        builder.Environment.IsDevelopment()
+        || builder.Configuration.GetValue<bool>("Security:EnableSwagger");
 
     builder
         .Services.AddRazorComponents()
@@ -105,7 +108,7 @@ try
 
     builder
         .Services.AddWebServices()
-        .AddAuthServices()
+        .AddAuthServices(builder.Configuration)
         .AddCoreModuleServices(builder.Configuration);
 
     var app = builder.Build();
@@ -121,8 +124,40 @@ try
         {
             ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
         };
-        forwardedHeadersOptions.KnownNetworks.Clear();
-        forwardedHeadersOptions.KnownProxies.Clear();
+        var knownProxies = builder
+            .Configuration.GetSection("Security:KnownProxies")
+            .Get<string[]>();
+        if (knownProxies is { Length: > 0 })
+        {
+            // 只信任列出的反代 IP：否则任意客户端都能伪造 X-Forwarded-For，
+            // 绕过基于来源 IP 的登录限流
+            forwardedHeadersOptions.KnownNetworks.Clear();
+            forwardedHeadersOptions.KnownProxies.Clear();
+            foreach (var proxy in knownProxies)
+            {
+                if (IPAddress.TryParse(proxy, out var ip))
+                {
+                    forwardedHeadersOptions.KnownProxies.Add(ip);
+                }
+                else
+                {
+                    app.Logger.LogWarning(
+                        "Security:KnownProxies entry '{proxy}' is not a valid IP, skipped",
+                        proxy
+                    );
+                }
+            }
+        }
+        else
+        {
+            // 未配置受信代理时保持「信任所有来源」的旧行为（容器内反代 IP 不固定），
+            // 但要在日志里明确提示伪造风险
+            forwardedHeadersOptions.KnownNetworks.Clear();
+            forwardedHeadersOptions.KnownProxies.Clear();
+            app.Logger.LogWarning(
+                "Security:UseForwardedHeaders is on without Security:KnownProxies; X-Forwarded-For from any client is trusted and login throttling can be bypassed by IP spoofing"
+            );
+        }
         app.UseForwardedHeaders(forwardedHeadersOptions);
     }
 

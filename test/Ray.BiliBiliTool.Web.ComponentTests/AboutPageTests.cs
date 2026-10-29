@@ -38,6 +38,6 @@ public class AboutPageTests : ComponentTestBase
 
         var cut = Render<About>();
 
-        cut.Markup.Should().Contain("github.com/RayWangQvQ/BiliBiliToolPro");
+        cut.Markup.Should().Contain("github.com/angussleeping/BiliBiliToolPro");
     }
 }

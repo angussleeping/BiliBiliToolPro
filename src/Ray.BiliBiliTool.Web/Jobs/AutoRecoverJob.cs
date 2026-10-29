@@ -17,8 +17,9 @@ public class AutoRecoverJob(
     ILogger<AutoRecoverJob> logger,
     IOptionsMonitor<AutoRecoverOptions> options,
     ITodayTaskService todayTaskService,
-    ITaskFailureBatchMonitor? failureMonitor = null
-) : BaseJob<AutoRecoverJob>(logger, failureMonitor)
+    ITaskFailureBatchMonitor? failureMonitor = null,
+    IOptionsMonitor<SecurityOptions>? securityOptions = null
+) : BaseJob<AutoRecoverJob>(logger, failureMonitor, securityOptions)
 {
     public static readonly JobKey Key = new(nameof(AutoRecoverJob), Constants.BiliJobGroup);
     public static readonly TriggerKey TriggerKeyValue = new(

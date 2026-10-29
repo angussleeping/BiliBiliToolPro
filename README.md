@@ -15,7 +15,13 @@ BiliTool 通过 Bilibili 的接口定时执行各类任务。你可以使用 Web
 > [!IMPORTANT]
 > 本项目仅供学习与技术测试使用。运行前请先了解各任务的行为与配置，合理使用，并遵守 Bilibili 的相关条款。请勿在 issue 或公开配置中泄露账号 Cookie 等敏感信息。
 
-> 本仓库是 [RayWangQvQ/BiliBiliToolPro](https://github.com/RayWangQvQ/BiliBiliToolPro) 的 fork。只保留三种部署方式（自动化面板、Docker、本地 Release 包），并在上游基础上追加了额外的安全加固。
+> 本仓库是 [RayWangQvQ/BiliBiliToolPro](https://github.com/RayWangQvQ/BiliBiliToolPro) 的 fork。与上游的差异：
+>
+> - 只保留三种部署方式：自动化面板（青龙/白虎/呆呆）、Docker、本地 Release 包
+> - Docker 镜像只推送 GHCR：`ghcr.io/angussleeping/bili_tool_web`
+> - 安全加固：登录失败限流与登录表单 antiforgery 校验、Swagger 生产默认关闭、HTTPS 重定向可配置、可配置受信反代 IP、登录 Cookie 显式安全标志
+> - 容器内以 `PUID`/`PGID` 非 root 运行，登录签名密钥持久化到 `/app/keys`（重建容器不掉登录态）
+> - 恢复 Web/Docker 定时任务的随机延时（`Security:RandomSleepMaxSec`，默认 300 秒，仅定时触发生效）
 
 <p align="center">
   <img src="docs/imgs/web-index.png" alt="Web 面板首页" width="800">

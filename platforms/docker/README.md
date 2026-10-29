@@ -30,13 +30,14 @@ docker compose up -d
 docker logs -f bili_tool_web
 ```
 
-The sample mounts `./Logs` and `./config` into the container and publishes port `22330` to container port `8080`. After the first run, the directory looks like:
+The sample mounts `./Logs`, `./config` and `./keys` into the container and publishes port `22330` to container port `8080`. `./keys` persists the sign-in cookie signing keys so sessions survive container rebuilds. The container starts as root, fixes ownership of the mounted directories, then drops to `PUID`/`PGID` (default `1000`/`1000`) — set both to the owner of the host directories. After the first run, the directory looks like:
 
 ```text
 bili_tool_web/
 ├── Logs/
 ├── config/
 │   └── BiliBiliTool.db
+├── keys/
 └── docker-compose.yml
 ```
 
@@ -60,6 +61,8 @@ docker pull ghcr.io/angussleeping/bili_tool_web
 docker run -d --name="bili_tool_web" \
     -p 22330:8080 \
     -e TZ=Asia/Shanghai \
+    -e PUID=1000 \
+    -e PGID=1000 \
     -v "$(pwd)/Logs:/app/Logs" \
     -v "$(pwd)/config:/app/config" \
     -v "$(pwd)/keys:/app/keys" \

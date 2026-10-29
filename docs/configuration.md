@@ -193,6 +193,72 @@ Supports proxies with or without credentials.
 | Accepted value | `http://host:port` or `user:password@host:port` (the authenticated form adds `http://` internally) |
 | Default | Empty (no proxy) |
 
+<a id="markdown-328-定时任务随机延时最大秒数" name="328-定时任务随机延时最大秒数"></a>
+#### 3.2.8. Random delay before scheduled tasks (Web/Docker)
+
+Before each cron-triggered task runs, the Web host waits a random number of seconds up to this limit, so requests do not hit Bilibili at the exact same time every day. Manual runs from the panel and the `Login`/`Test` jobs are never delayed.
+
+| Field | Value |
+| --- | --- |
+| Configuration key | `Security__RandomSleepMaxSec` |
+| Accepted value | Nonnegative number of seconds; `0` disables the delay |
+| Default | `300` in Web `appsettings.json` |
+
+<a id="markdown-329-是否强制https" name="329-是否强制https"></a>
+#### 3.2.9. Require HTTPS (Web)
+
+When `true`, the Web host enables HTTPS redirection and marks the sign-in cookie `Secure`. Keep `false` for plain-HTTP container deployments.
+
+| Field | Value |
+| --- | --- |
+| Configuration key | `Security__RequireHttps` |
+| Accepted value | `true` or `false` |
+| Default | `false` |
+
+<a id="markdown-3210-反向代理转发头" name="3210-反向代理转发头"></a>
+#### 3.2.10. Forwarded headers behind a reverse proxy (Web)
+
+Set `Security__UseForwardedHeaders=true` when the Web host runs behind a reverse proxy (Nginx/Caddy/Traefik) so HTTPS and the real client IP are recognized. List the proxy IPs in `Security__KnownProxies` (e.g. `["172.18.0.2"]`); when empty, `X-Forwarded-For` from any client is trusted — which lets clients spoof their IP to bypass login throttling — so a warning is logged at startup.
+
+| Field | Value |
+| --- | --- |
+| Configuration key | `Security__UseForwardedHeaders`, `Security__KnownProxies` |
+| Accepted value | `true`/`false`; array of IP strings |
+| Default | `false`; empty list |
+
+<a id="markdown-3211-swagger开关" name="3211-swagger开关"></a>
+#### 3.2.11. Swagger UI (Web)
+
+The `/swagger` API docs are off outside the Development environment unless explicitly enabled.
+
+| Field | Value |
+| --- | --- |
+| Configuration key | `Security__EnableSwagger` |
+| Accepted value | `true` or `false` |
+| Default | `false` |
+
+<a id="markdown-3212-管理员初始密码" name="3212-管理员初始密码"></a>
+#### 3.2.12. Initial admin password (Web)
+
+Sets the admin password only when the database is first created. Leave empty to use the built-in default `BiliTool@2233` (a warning is logged). Change it on the Admin page after the first sign-in.
+
+| Field | Value |
+| --- | --- |
+| Configuration key | `Security__DefaultAdminPassword` |
+| Accepted value | Non-empty string |
+| Default | Empty (use built-in default) |
+
+<a id="markdown-3213-dataprotection密钥目录" name="3213-dataprotection密钥目录"></a>
+#### 3.2.13. DataProtection keys directory (Web)
+
+Where the sign-in cookie signing keys are stored. The container image points this at `/app/keys`; mount that directory so sessions survive container rebuilds.
+
+| Field | Value |
+| --- | --- |
+| Configuration key | `Security__DataProtectionKeysDirectory` |
+| Accepted value | Directory path |
+| Default | `/app/keys` in the container image; framework default otherwise |
+
 <a id="markdown-33-每日任务相关" name="33-每日任务相关"></a>
 ### 3.3. Daily tasks
 

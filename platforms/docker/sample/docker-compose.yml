@@ -13,3 +13,7 @@ services:
     environment:
       TZ: "Asia/Shanghai"
       DailyTaskConfig__Cron: "0 0 15 * * ?"
+      # Container runs as this uid/gid (drops from root via gosu); align with the
+      # owner of the host-mounted directories above
+      PUID: "1000"
+      PGID: "1000"

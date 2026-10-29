@@ -11,6 +11,7 @@ namespace Ray.BiliBiliTool.Web.Controllers;
 public class AuthController(IAuthService authService, LoginThrottle loginThrottle) : ControllerBase
 {
     [HttpPost("login")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(
         [FromForm] string? username,
         [FromForm] string? password,

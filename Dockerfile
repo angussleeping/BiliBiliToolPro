@@ -64,11 +64,9 @@ ENV Security__DataProtectionKeysDirectory=/app/keys
 COPY --from=build /app/publish .
 COPY --from=build /code/platforms/docker/entrypoint.sh /app/entrypoint.sh
 
-# gosu lets the entrypoint drop from root to PUID/PGID after fixing ownership of
-# mounted dirs; chmod in the final layer runs on BUILDPLATFORM-compatible binaries
-# only (gosu is not executed at build time), so cross-build still needs no QEMU
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends gosu \
-    && rm -rf /var/lib/apt/lists/* \
-    && chmod +x /app/entrypoint.sh
+# gosu 从多架构官方镜像直接拷贝（COPY 不执行任何目标架构指令），
+# final 层保持零 RUN，跨架构构建无需 QEMU（ADR-0004）。
+# gosu 让 entrypoint 在修好挂载目录属主后从 root 降到 PUID/PGID。
+# entrypoint.sh 的可执行位已在 build 阶段设置，COPY 会保留。
+COPY --from=tianon/gosu:1.17-debian /gosu /usr/local/bin/gosu
 ENTRYPOINT ["/app/entrypoint.sh"]

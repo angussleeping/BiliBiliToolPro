@@ -54,7 +54,10 @@ public static class ServiceCollectionExtension
         return services;
     }
 
-    public static IServiceCollection AddAuthServices(this IServiceCollection services)
+    public static IServiceCollection AddAuthServices(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
         services.AddAuthenticationCore();
         services.AddAuthorizationCore();
@@ -68,6 +71,14 @@ public static class ServiceCollectionExtension
                 options.Cookie.Name = "BiliToolWebAuth";
                 options.LoginPath = "/login";
                 options.ExpireTimeSpan = TimeSpan.FromDays(30);
+                // 显式安全标志（HttpOnly/Lax 其实已是框架默认，写出来防止以后被默认值变动波及）；
+                // Secure=Always 只在强制 HTTPS 时开启，纯 HTTP 部署下 Secure cookie 浏览器根本不会回传
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                if (configuration.GetValue<bool>("Security:RequireHttps"))
+                {
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                }
             });
         services.AddHttpContextAccessor();
         services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();

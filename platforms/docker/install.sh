@@ -265,9 +265,10 @@ downloadResources() {
 
     # docker compose
     if [ ! -f "docker-compose.yml" ]; then
-        download $remote_compose_url ./docker-compose.yml
-        # Point compose at the same image as docker pull so BILI_IMAGE takes effect
-        sed "s|^[[:space:]]*image:.*|    image: ${docker_img_name}|" docker-compose.yml >docker-compose.yml.tmp
+        download "$remote_compose_url" ./docker-compose.yml
+        # Point compose at the same image as docker pull so BILI_IMAGE takes effect.
+        # 只替换 ghcr.io 的镜像行，避免误伤将来 compose 里新增的其他服务
+        sed "s|^\([[:space:]]*image:[[:space:]]*\)ghcr\.io/[^[:space:]]*|\1${docker_img_name}|" docker-compose.yml >docker-compose.yml.tmp
         mv docker-compose.yml.tmp docker-compose.yml
     fi
 

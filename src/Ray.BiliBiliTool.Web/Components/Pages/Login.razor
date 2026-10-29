@@ -16,6 +16,7 @@ else if (_loginError)
 }
 
 <form action="/auth/login" method="post">
+    <input type="hidden" name="@_antiforgeryFieldName" value="@_antiforgeryToken" />
     <input type="hidden" name="returnUrl" value="@returnUrl" />
 
     <MudCard Class="mx-auto my-4" Style="max-width: 500px;">
