@@ -1,12 +1,7 @@
 ## 4.2.5
-- fix(web): 修复定时任务随机延时（Security:RandomSleepMaxSec）未注入 Job 导致完全不生效的问题
-- fix(docker): gosu 改为从多架构镜像直接拷贝，final 层恢复零 RUN，跨架构构建不再需要 QEMU
-- feat(security): 新增 Security:KnownProxies 受信反代 IP 配置；开启转发头但未配置时启动日志提示伪造风险
-- feat(security): 登录表单增加 antiforgery 校验，防登录 CSRF
-- feat(security): RequireHttps 开启时登录 Cookie 显式带 Secure 标志
-- fix(security): 登录失败限流计数加锁，避免并发丢计数
-- fix(docker): entrypoint 处理组/用户名冲突、PUID/PGID=0 给出警告、属主正确时跳过递归 chown
-- fix(docker): install.sh 的 sed 只替换 ghcr.io 镜像行，避免误伤 compose 中其他服务
+- fix: 修复定时任务随机延时未生效并加固登录/反代/镜像构建
+- Remove contribution and support sections from README
+- docs(readme): translate README to Chinese and sync fork state
 ## 4.2.4
 - 基于上游最新代码重建 fork：只保留三种部署方式、镜像仅推 GHCR、同步上游全部版本 tag
 - Web 安全加固：登录失败限流、Swagger 生产默认关闭、HTTPS 重定向可配置、DataProtection 密钥持久化到 /app/keys、容器内非 root 运行
