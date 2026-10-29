@@ -6,18 +6,6 @@
 
 自动化执行一个或多个 Bilibili 账号的日常任务。
 
-[![GitHub Stars](https://img.shields.io/github/stars/RayWangQvQ/BiliBiliToolPro?style=flat-square)](https://github.com/RayWangQvQ/BiliBiliToolPro/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/RayWangQvQ/BiliBiliToolPro?style=flat-square)](https://github.com/RayWangQvQ/BiliBiliToolPro/network)
-[![GitHub Issues](https://img.shields.io/github/issues/RayWangQvQ/BiliBiliToolPro?style=flat-square)](https://github.com/RayWangQvQ/BiliBiliToolPro/issues)
-[![GitHub Contributors](https://img.shields.io/github/contributors/RayWangQvQ/BiliBiliToolPro?style=flat-square)](https://github.com/RayWangQvQ/BiliBiliToolPro/graphs/contributors)
-[![GitHub Downloads](https://img.shields.io/github/downloads/RayWangQvQ/BiliBiliToolPro/total?style=flat-square)](https://github.com/RayWangQvQ/BiliBiliToolPro/releases)
-[![Latest Release](https://img.shields.io/github/v/release/RayWangQvQ/BiliBiliToolPro?style=flat-square)](https://github.com/RayWangQvQ/BiliBiliToolPro/releases)
-[![License](https://img.shields.io/github/license/RayWangQvQ/BiliBiliToolPro?style=flat-square)](LICENSE)
-
-<a href="https://trendshift.io/repositories/3329">
-  <img src="https://trendshift.io/api/badge/repositories/3329" alt="BiliBiliToolPro on Trendshift" width="250" height="55">
-</a>
-
 </div>
 
 BiliTool 通过 Bilibili 的接口定时执行各类任务。你可以使用 Web 面板管理账号、配置、定时计划和执行日志，也可以用 Console 程序配合任意调度器运行。
@@ -105,50 +93,11 @@ BiliTool 通过 Bilibili 的接口定时执行各类任务。你可以使用 Web
 
 已发布的版本见 [releases](https://github.com/angussleeping/BiliBiliToolPro/releases)，进行中的工作见 [issue 列表](https://github.com/angussleeping/BiliBiliToolPro/issues)。合并到 `main` 会产出 alpha 预览镜像，稳定版镜像与 Release 包由发版流程单独发布。
 
-## 参与贡献
-
-欢迎代码与文档贡献：
-
-测试命名、分层与本地安全执行方式见 [测试指南](docs/testing.md)。
-
-1. 动手前先搜索已有 issue。较大或不确定的改动，请先开 issue 讨论方案。
-2. Fork 仓库，基于 `main` 分支修改。
-3. 向 `main` 发起标题与描述清晰的 Pull Request。评审通过且检查成功后，由维护者 squash 合并。
-
-文档的修正、澄清与勘误与代码改动同样有价值。
-
-## 支持项目（上游作者）
-
-如果 BiliTool 对你有帮助，可以通过下方二维码支持上游作者的维护工作。
-
-每一次赞助，都是为你理想中的世界投票！
-
-![打赏二维码](docs/imgs/donate.jpg)
-
-（如需加入讨论群组，请在打赏留言中备注你的微信号。）
-
-部分 Up 主 ID 配置项的**默认值**是上游作者的 Bilibili ID。你可以通过配置文件、环境变量等方式修改这些配置，用于支持你喜欢的其他创作者。
-
 ## 致谢与参考
 
 - [Bilibili](https://www.bilibili.com/)
 - [SocialSisterYi/bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)
 - [JunzhouLiu/BILIBILI-HELPER](https://github.com/JunzhouLiu/BILIBILI-HELPER)
 
-感谢 JetBrains 提供的免费开源许可证：
 
-<p align="center">
-  <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/ReSharper.svg" alt="ReSharper logo" width="200">
-</p>
 
-感谢 [YxVM](https://yxvm.com/aff.php?aff=668)、[NodeSeekDev](https://github.com/NodeSeekDev/NodeSupport) 和 [DartNode](https://dartnode.com?aff=FriskyGopher833) 对项目测试服务器的支持。
-
-<p align="center">
-  <a href="https://yxvm.com/aff.php?aff=668"><img src="docs/imgs/node-support.png" alt="YxVM 与 NodeSeekDev 赞助" width="200"></a>
-</p>
-
-[![Powered by DartNode](https://dartnode.com/branding/DN-Open-Source-sm.png)](https://dartnode.com "Powered by DartNode")
-
-感谢每一位为项目点 Star 的朋友：
-
-[![Star history chart](https://api.star-history.com/svg?repos=RayWangQvQ/BiliBiliToolPro&type=Date)](https://www.star-history.com/#RayWangQvQ/BiliBiliToolPro&Date)
