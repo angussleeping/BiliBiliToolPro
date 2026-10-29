@@ -4,7 +4,7 @@
 
 # BiliTool
 
-Automate recurring Bilibili tasks across one or more accounts.
+自动化执行一个或多个 Bilibili 账号的日常任务。
 
 [![GitHub Stars](https://img.shields.io/github/stars/RayWangQvQ/BiliBiliToolPro?style=flat-square)](https://github.com/RayWangQvQ/BiliBiliToolPro/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/RayWangQvQ/BiliBiliToolPro?style=flat-square)](https://github.com/RayWangQvQ/BiliBiliToolPro/network)
@@ -20,65 +20,65 @@ Automate recurring Bilibili tasks across one or more accounts.
 
 </div>
 
-BiliTool runs scheduled Bilibili activities through the platform's APIs. Use the Web panel to manage accounts, configuration, schedules, and execution logs, or run tasks with the Console host and your preferred scheduler.
+BiliTool 通过 Bilibili 的接口定时执行各类任务。你可以使用 Web 面板管理账号、配置、定时计划和执行日志，也可以用 Console 程序配合任意调度器运行。
 
-It supports QR-code login and cookie updates, multiple Bilibili accounts, daily experience tasks, live-room and manga activities, VIP benefits, B-coin voucher charging, batch unfollowing, and optional notifications. Each activity can be configured independently; availability depends on your account and Bilibili's current services.
+支持的功能包括：扫码登录与 Cookie 更新、多账号、每日经验任务、直播间与漫画相关活动、大会员权益、B 币券充电、批量取关，以及可选的消息推送。每个任务都可以独立配置；实际可用性取决于你的账号状态和 Bilibili 当前的服务情况。
 
 > [!IMPORTANT]
-> This project is intended for learning and testing. Review the tasks and configuration before running them, use it responsibly, and comply with Bilibili's terms. Do not expose account cookies or other secrets in issues or public configuration.
+> 本项目仅供学习与技术测试使用。运行前请先了解各任务的行为与配置，合理使用，并遵守 Bilibili 的相关条款。请勿在 issue 或公开配置中泄露账号 Cookie 等敏感信息。
 
-> This repository is a fork of [RayWangQvQ/BiliBiliToolPro](https://github.com/RayWangQvQ/BiliBiliToolPro). It keeps only three deployment methods (automation panels, Docker, local release binaries) and applies additional security hardening on top of upstream.
+> 本仓库是 [RayWangQvQ/BiliBiliToolPro](https://github.com/RayWangQvQ/BiliBiliToolPro) 的 fork。只保留三种部署方式（自动化面板、Docker、本地 Release 包），并在上游基础上追加了额外的安全加固。
 
 <p align="center">
-  <img src="docs/imgs/web-index.png" alt="Web panel schedules" width="800">
+  <img src="docs/imgs/web-index.png" alt="Web 面板首页" width="800">
   <br>
-  <img src="docs/imgs/web-schedules.png" alt="Web panel schedules" width="800">
+  <img src="docs/imgs/web-schedules.png" alt="Web 面板定时计划" width="800">
   <br>
-  <img src="docs/imgs/web-schedules-log.png" alt="Web panel execution logs" width="800">
+  <img src="docs/imgs/web-schedules-log.png" alt="Web 面板执行日志" width="800">
   <br>
-  <img src="docs/imgs/web-configs.png" alt="Web panel configuration" width="800">
+  <img src="docs/imgs/web-configs.png" alt="Web 面板配置页" width="800">
 </p>
 
-## Get started
+## 快速开始
 
-Choose one deployment guide, start the application, and run the **Login** task to add a Bilibili account by scanning its QR code. Then configure the tasks and schedules you want to use.
+任选一种部署方式，启动应用后先运行 **Login（登录）** 任务，扫码添加 Bilibili 账号，然后按需配置任务和定时计划。
 
-| Environment | Guide |
+| 环境 | 教程 |
 | --- | --- |
-| Containers | [Docker](platforms/docker/README.md) |
-| Automation panels | [Qinglong](platforms/qinglong/README.md) · [Baihu](platforms/baihu/README.md) · [Daidai](platforms/daidai/README.md) |
-| Local machine or server | [Download and run the application](docs/runInLocal.md) |
+| 容器 | [Docker](platforms/docker/README.md) |
+| 自动化面板 | [青龙](platforms/qinglong/README.md) · [白虎](platforms/baihu/README.md) · [呆呆](platforms/daidai/README.md) |
+| 本地或服务器 | [下载 Release 包直接运行](docs/runInLocal.md) |
 
-For settings, environment variables, and task-specific options, see the [configuration guide](docs/configuration.md). For troubleshooting, see the [FAQ](docs/questions.md).
+配置项、环境变量和各任务的详细选项见 [配置说明](docs/configuration.md)；遇到问题先查 [常见问题](docs/questions.md)。
 
-## Available tasks
+## 任务列表
 
-A **task** is a runnable unit of work. Some tasks contain several individual activities; enable only the ones you need.
+**任务**是可独立运行的最小单元。部分任务包含多个子活动，只启用你需要的即可。
 
-| Task | Console code | What it does | Suggested frequency |
+| 任务 | Console 代码 | 作用 | 建议频率 |
 | --- | --- | --- | --- |
-| QR-code login | `Login` | Adds an account or refreshes an expired cookie | Manually, when needed |
-| Daily tasks | `Daily` | Handles login, video viewing, sharing, and coin contributions for daily experience | Once a day |
-| Live-room lottery | `LiveLottery` | Enters eligible live-room lotteries; some require following the host | Up to four times a day |
-| Batch unfollow | `UnfollowBatched` | Unfollows accounts in a configured group | Manually |
-| VIP points | `VipBigPoint` | Completes eligible VIP points activities | Once a day |
-| Fan medal | `LiveFansMedal` | Runs live-room fan-medal activities | Once a day |
-| Manga | `Manga` | Checks in and reads manga | Once a day |
-| VIP manga benefits | `MangaPrivilege` | Claims eligible manga benefits | Once a day |
-| Silver-to-coin exchange | `Silver2Coin` | Exchanges live-room silver seeds for coins | Once a day |
-| B-coin charging | `Charge` | Uses an eligible VIP B-coin voucher to support a creator | Once a day |
-| VIP benefits | `VipPrivilege` | Claims eligible VIP benefits | Once a day |
-| Cookie check | `Test` | Checks whether a cookie is usable | Manually |
+| 扫码登录 | `Login` | 添加账号或刷新过期 Cookie | 需要时手动运行 |
+| 每日任务 | `Daily` | 登录、观看、分享、投币等每日经验 | 每天一次 |
+| 天选时刻抽奖 | `LiveLottery` | 参与符合条件的直播间抽奖（部分需关注主播） | 每天最多四次 |
+| 批量取关 | `UnfollowBatched` | 批量取关指定分组中的 Up 主 | 需要时手动运行 |
+| 大会员积分 | `VipBigPoint` | 完成符合条件的大会员积分任务 | 每天一次 |
+| 粉丝勋章 | `LiveFansMedal` | 执行直播间粉丝勋章相关活动 | 每天一次 |
+| 漫画 | `Manga` | 漫画签到与阅读 | 每天一次 |
+| 大会员漫画权益 | `MangaPrivilege` | 领取符合条件的漫画权益 | 每天一次 |
+| 银瓜子换硬币 | `Silver2Coin` | 将直播银瓜子兑换为硬币 | 每天一次 |
+| B 币券充电 | `Charge` | 使用大会员 B 币券为指定 Up 主充电 | 每天一次 |
+| 大会员权益 | `VipPrivilege` | 领取符合条件的大会员权益 | 每天一次 |
+| Cookie 检测 | `Test` | 检测 Cookie 是否可用 | 需要时手动运行 |
 
-Task eligibility, rewards, and timing are controlled by Bilibili and may change. Check the [configuration guide](docs/configuration.md) for switches, schedules, and creator IDs.
+任务的参与资格、奖励和具体时间由 Bilibili 控制，可能随时变化。开关、Cron 表达式、Up 主 ID 等详见 [配置说明](docs/configuration.md)。
 
-## Multiple accounts
+## 多账号
 
-Run the **Login** task again to add another Bilibili account. Where the cookie is stored depends on the host:
+再次运行 **Login（登录）** 任务即可添加另一个 Bilibili 账号。Cookie 的存储位置取决于运行方式：
 
-- **Web panel:** accounts are managed in the panel and stored in `config/BiliBiliTool.db`.
-- **Qinglong:** cookies are saved as environment variables such as `Ray_BiliBiliCookies__0`, `Ray_BiliBiliCookies__1`, and so on.
-- **Console and other non-Web hosts:** the default local account file is `cookies.json`:
+- **Web 面板**：账号在面板中管理，存储于 `config/BiliBiliTool.db`。
+- **青龙**：Cookie 以环境变量形式保存，如 `Ray_BiliBiliCookies__0`、`Ray_BiliBiliCookies__1`，以此类推。
+- **Console 及其他非 Web 方式**：默认使用本地文件 `cookies.json`：
 
 ```json
 {
@@ -89,66 +89,66 @@ Run the **Login** task again to add another Bilibili account. Where the cookie i
 }
 ```
 
-The **panel administrator** login is separate from the Bilibili accounts used for tasks. Treat both administrator credentials and Bilibili cookies as secrets.
+**面板管理员**账号与执行任务的 Bilibili 账号是相互独立的。管理员凭据和 Bilibili Cookie 都应作为敏感信息妥善保管。
 
-## Notifications
+## 消息推送
 
-Optional execution notifications support Telegram, PushPlus, WeCom, DingTalk, Microsoft Teams, ServerChan, CoolPush, and custom API endpoints. Delivery depends on the provider and your configuration. See [notification settings](docs/configuration.md) for setup.
+可选的执行结果推送支持 Telegram、PushPlus、企业微信、钉钉、Microsoft Teams、Server 酱、酷推以及自定义 API。实际送达取决于服务商和你的配置，设置方法见 [推送配置](docs/configuration.md)。
 
 <p align="center">
-  <img src="docs/imgs/push-tg.png" alt="Example Telegram notification" width="300">
+  <img src="docs/imgs/push-tg.png" alt="Telegram 推送示例" width="300">
 </p>
 
-## Help and releases
+## 帮助与发布
 
-Before reporting a problem, update to the latest release and search the [FAQ](docs/questions.md), [configuration guide](docs/configuration.md), [issues](https://github.com/angussleeping/BiliBiliToolPro/issues), and [discussions](https://github.com/angussleeping/BiliBiliToolPro/discussions). Open an issue for a reproducible bug or feature request; use discussions for questions and ideas. Never post cookies, tokens, or passwords.
+反馈问题前，请先更新到最新版本，并搜索 [常见问题](docs/questions.md)、[配置说明](docs/configuration.md)、[issues](https://github.com/angussleeping/BiliBiliToolPro/issues) 和 [discussions](https://github.com/angussleeping/BiliBiliToolPro/discussions)。可复现的 bug 或功能请求请开 issue；提问和想法请用 discussions。切勿发布 Cookie、令牌或密码。
 
-Follow [releases](https://github.com/angussleeping/BiliBiliToolPro/releases) for published versions and the [issue tracker](https://github.com/angussleeping/BiliBiliToolPro/issues) for ongoing work. Merges to `main` produce preview Docker images; stable releases are published separately.
+已发布的版本见 [releases](https://github.com/angussleeping/BiliBiliToolPro/releases)，进行中的工作见 [issue 列表](https://github.com/angussleeping/BiliBiliToolPro/issues)。合并到 `main` 会产出 alpha 预览镜像，稳定版镜像与 Release 包由发版流程单独发布。
 
-## Contribute
+## 参与贡献
 
-Code and documentation contributions are welcome:
+欢迎代码与文档贡献：
 
-For test naming, levels, and safe local execution, see the [testing guide](docs/testing.md).
+测试命名、分层与本地安全执行方式见 [测试指南](docs/testing.md)。
 
-1. Search existing issues before starting. For substantial or uncertain changes, open an issue to discuss the approach first.
-2. Fork the repository and make changes based on `main`.
-3. Open a pull request targeting `main` with a clear title and description. After review and successful checks, maintainers squash-merge accepted changes.
+1. 动手前先搜索已有 issue。较大或不确定的改动，请先开 issue 讨论方案。
+2. Fork 仓库，基于 `main` 分支修改。
+3. 向 `main` 发起标题与描述清晰的 Pull Request。评审通过且检查成功后，由维护者 squash 合并。
 
-Documentation fixes, clarifications, and corrections are just as valuable as code changes.
+文档的修正、澄清与勘误与代码改动同样有价值。
 
-## Support the project
+## 支持项目（上游作者）
 
-If BiliTool helps you, you can support its maintenance through the donation QR code below. 
+如果 BiliTool 对你有帮助，可以通过下方二维码支持上游作者的维护工作。
 
-Every sponsorship is a vote for your ideal world!
+每一次赞助，都是为你理想中的世界投票！
 
-![Donation QR code](docs/imgs/donate.jpg)
+![打赏二维码](docs/imgs/donate.jpg)
 
-(If you would like to join the discussion group, please include your WeChat ID in the message when making a donation.)
+（如需加入讨论群组，请在打赏留言中备注你的微信号。）
 
-Some creator-ID settings use the maintainer's Bilibili ID as a **default configuration value**. You can change those settings through the configuration file, secrets, or environment variables to support a different creator.
+部分 Up 主 ID 配置项的**默认值**是上游作者的 Bilibili ID。你可以通过配置文件、环境变量等方式修改这些配置，用于支持你喜欢的其他创作者。
 
-## Acknowledgments and references
+## 致谢与参考
 
 - [Bilibili](https://www.bilibili.com/)
 - [SocialSisterYi/bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)
 - [JunzhouLiu/BILIBILI-HELPER](https://github.com/JunzhouLiu/BILIBILI-HELPER)
 
-Thanks to JetBrains for a free open-source license:
+感谢 JetBrains 提供的免费开源许可证：
 
 <p align="center">
   <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/ReSharper.svg" alt="ReSharper logo" width="200">
 </p>
 
-Thanks to [YxVM](https://yxvm.com/aff.php?aff=668), [NodeSeekDev](https://github.com/NodeSeekDev/NodeSupport), and [DartNode](https://dartnode.com?aff=FriskyGopher833) for supporting the project's test servers.
+感谢 [YxVM](https://yxvm.com/aff.php?aff=668)、[NodeSeekDev](https://github.com/NodeSeekDev/NodeSupport) 和 [DartNode](https://dartnode.com?aff=FriskyGopher833) 对项目测试服务器的支持。
 
 <p align="center">
-  <a href="https://yxvm.com/aff.php?aff=668"><img src="docs/imgs/node-support.png" alt="YxVM and NodeSeekDev sponsorship" width="200"></a>
+  <a href="https://yxvm.com/aff.php?aff=668"><img src="docs/imgs/node-support.png" alt="YxVM 与 NodeSeekDev 赞助" width="200"></a>
 </p>
 
 [![Powered by DartNode](https://dartnode.com/branding/DN-Open-Source-sm.png)](https://dartnode.com "Powered by DartNode")
 
-Thanks to everyone who has starred this project:
+感谢每一位为项目点 Star 的朋友：
 
 [![Star history chart](https://api.star-history.com/svg?repos=RayWangQvQ/BiliBiliToolPro&type=Date)](https://www.star-history.com/#RayWangQvQ/BiliBiliToolPro&Date)
