@@ -6,6 +6,9 @@
 
 自动化执行一个或多个 Bilibili 账号的日常任务。
 
+[![release](https://img.shields.io/github/v/release/angussleeping/BiliBiliToolPro?label=release)](https://github.com/angussleeping/BiliBiliToolPro/releases)
+[![ghcr](https://img.shields.io/badge/ghcr.io-bili__tool__web-blue?logo=docker&logoColor=white)](https://github.com/angussleeping/BiliBiliToolPro/pkgs/container/bili_tool_web)
+
 </div>
 
 BiliTool 通过 Bilibili 的接口定时执行各类任务。你可以使用 Web 面板管理账号、配置、定时计划和执行日志，也可以用 Console 程序配合任意调度器运行。
