@@ -12,4 +12,5 @@
 
 - alpha 基底是"暂定下一 patch"，若最终发版选 minor/major，alpha tag 与稳定版号会错配（如 `4.0.8-alpha.3` → `4.1.0`）——显式接受的预期行为，alpha 用后即弃。
 - PR 标题不做 CI 强制校验，release notes 生成器必须对不合规标题兜底（原样收录）。
+- Release 正文与 CHANGELOG 段落同源（`scripts/release-body.sh` 消费 `release-notes.sh` 的条目），不再使用 GitHub 的 `generate_release_notes`：该功能只输出英文模板，且与自定义正文叠加时会把同一批 PR 列两遍。后果是**发布页语言 = 提交标题语言**，因此主干标题约定为中文（见 AGENTS.md），机器人标题由生成器做确定性改写。
 - 完整实施规格见 issue #1153。
