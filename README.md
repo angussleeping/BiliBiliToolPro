@@ -25,6 +25,7 @@ BiliTool 通过 Bilibili 的接口定时执行各类任务。你可以使用 Web
 > - 安全加固：登录失败限流与登录表单 antiforgery 校验、Swagger 生产默认关闭、HTTPS 重定向可配置、可配置受信反代 IP、登录 Cookie 显式安全标志
 > - 容器内以 `PUID`/`PGID` 非 root 运行，登录签名密钥持久化到 `/app/keys`（重建容器不掉登录态）
 > - 恢复 Web/Docker 定时任务的随机延时（`Security:RandomSleepMaxSec`，默认 300 秒，仅定时触发生效）
+> - 修复大会员积分「领取日常任务」返回 `6007000 请将客户端更新至最新版本`：`receive/v2`、`complete/v2` 已改成 App 端接口，请求体补上 `build` 等客户端参数后才被受理（上游 [#1195](https://github.com/RayWangQvQ/BiliBiliToolPro/issues/1195)）
 
 <p align="center">
   <img src="docs/imgs/web-index.png" alt="Web 面板首页" width="800">
