@@ -70,6 +70,20 @@ BiliTool 通过 Bilibili 的接口定时执行各类任务。你可以使用 Web
 
 任务的参与资格、奖励和具体时间由 Bilibili 控制，可能随时变化。开关、Cron 表达式、Up 主 ID 等详见 [配置说明](docs/configuration.md)。
 
+### 已知限制：大会员积分「观看剧集内容」
+
+`VipBigPoint` 能自动完成该任务的**领取**，但**不能**自动完成上报，日志末尾会出现 `确认："失败"`。原因是 B 站把完成环节放在了 App 客户端专属接口上：
+
+| 步骤 | 接口 | 现状 |
+| --- | --- | --- |
+| 领取 | `POST /pgc/activity/score/task/receive/v2` | 请求体带上 `build` 等客户端参数后正常受理（4.2.6 修复的正是这里） |
+| 开始观看 | `POST /pgc/activity/deliver/material/receive` | 只对携带 `x-bili-ticket`（App 端风控票据）的请求下发 `watch_count_down_cfg`（含 `task_id` / `token` / 600 秒倒计时） |
+| 上报完成 | `POST /pgc/activity/deliver/task/complete` | 依赖上一步的 `task_id` / `token`，且只能成功一次 |
+
+即使带上完整 Cookie、`csrf`、`appkey`/`ts`/`sign` 与全套设备头（`buvid` / `fp_local` / `fp_remote` / `x-bili-mid`），第 2 步仍只返回空壳 `{"closeType":"close_win","container":[],"showTime":""}`，因此无法在服务端复现。该票据由 App 按设备指纹与行为向服务端申请，纯 HTTP 请求无法伪造。
+
+**补齐方式**：每天在手机 App 内任选一集番剧/国创/电影/电视剧/综艺/纪录片，连续观看满 10 分钟即可获得这 40 大积分。工具负责的领取步骤已经完成，无需额外操作。
+
 ## 多账号
 
 再次运行 **Login（登录）** 任务即可添加另一个 Bilibili 账号。Cookie 的存储位置取决于运行方式：
