@@ -19,8 +19,9 @@ Never put the literal string `[skip ci]` (or any CI-skip marker) in a commit mes
 ### Language conventions
 
 - **Code comments**: keep them concise; write in **English**.
-- **Git commits**: use **English** commit messages by default.
-- **PR titles/bodies**: use **English** by default.
+- **Commit / PR subject lines that land on `main`**: write in **Chinese**. The squashed subject is copied verbatim into `CHANGELOG.md` and the GitHub Release body (ADR-0002), so English here leaks English into both. Start with a type prefix — `不兼容` / `新增` / `修复` / `维护`（也认 `依赖` / `重构` / `文档` / `测试`）—— `scripts/release-notes.sh` sorts the changelog by it.
+- **Commit bodies and PR descriptions**: English or Chinese, either is fine; only the subject line reaches the changelog.
+- **Bot titles**: do not hand-edit Dependabot (`Bump …`) or changelog bot (`docs(changelog): …`) titles; `scripts/release-notes.sh` rewrites those fixed templates into Chinese. Any other English subject stays English on purpose — no machine translation in the pipeline.
 
 ### Web UI layout (MudBlazor)
 

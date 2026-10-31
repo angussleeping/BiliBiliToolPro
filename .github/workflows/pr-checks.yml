@@ -118,6 +118,9 @@ jobs:
       - name: Release notes fixtures
         run: bash ./scripts/test-release-notes.sh
 
+      - name: Release body fixtures
+        run: bash ./scripts/test-release-body.sh
+
       - name: Update changelog fixtures
         run: bash ./scripts/test-update-changelog.sh
 
