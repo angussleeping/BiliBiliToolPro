@@ -1,3 +1,7 @@
+## 4.2.6
+- fix(vip-big-point): send App client fields for receive/v2
+- docs(readme): add release and GHCR image badges
+- docs(changelog): 4.2.5 (#4)
 ## 4.2.5
 - fix: 修复定时任务随机延时未生效并加固登录/反代/镜像构建
 - Remove contribution and support sections from README
