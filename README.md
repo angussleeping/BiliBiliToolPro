@@ -117,7 +117,7 @@ BiliTool 通过 Bilibili 的接口定时执行各类任务。你可以使用 Web
 
 反馈问题前，请先更新到最新版本，并搜索 [常见问题](docs/questions.md)、[配置说明](docs/configuration.md)、[issues](https://github.com/angussleeping/BiliBiliToolPro/issues) 和 [discussions](https://github.com/angussleeping/BiliBiliToolPro/discussions)。可复现的 bug 或功能请求请开 issue；提问和想法请用 discussions。切勿发布 Cookie、令牌或密码。
 
-已发布的版本见 [releases](https://github.com/angussleeping/BiliBiliToolPro/releases)，进行中的工作见 [issue 列表](https://github.com/angussleeping/BiliBiliToolPro/issues)。合并到 `main` 会产出 alpha 预览镜像，稳定版镜像与 Release 包由发版流程单独发布。
+已发布的版本见 [releases](https://github.com/angussleeping/BiliBiliToolPro/releases)，逐版本的变更明细见 [仓库更新日志](CHANGELOG.md)，进行中的工作见 [issue 列表](https://github.com/angussleeping/BiliBiliToolPro/issues)。合并到 `main` 会产出 alpha 预览镜像，稳定版镜像与 Release 包由发版流程单独发布。
 
 ## 致谢与参考
 
