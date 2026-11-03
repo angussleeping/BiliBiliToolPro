@@ -183,7 +183,9 @@ jobs:
           git checkout -b "$BRANCH"
           git commit -m "docs(changelog): $VERSION"
           git push -f origin "$BRANCH"
-          pr_url=$(gh pr view "$BRANCH" --json url -q .url 2>/dev/null || true)
+          # 只认「还开着」的 PR：重发同一个版本号时，旧分支上可能挂着一个早就合并掉的
+          # PR，`gh pr view <branch>` 会命中它并跳过 create，回写就永远留在分支上没人合。
+          pr_url=$(gh pr list --head "$BRANCH" --state open --json url -q '.[0].url // empty' 2>/dev/null || true)
           if [ -z "$pr_url" ]; then
             pr_url=$(gh pr create --base main --head "$BRANCH" \
               --title "docs(changelog): $VERSION" \
