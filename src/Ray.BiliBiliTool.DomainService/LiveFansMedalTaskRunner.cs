@@ -237,7 +237,13 @@ public class LiveFansMedalTaskRunner(
                     "获取直播状态"
                 );
                 if (action == "like" && room.Live_Status != 1)
+                {
+                    logger.LogInformation(
+                        "粉丝牌 {medal} 的直播间未开播，跳过点赞（B 站只在开播期间计点赞亲密度）",
+                        medal.Medal.Medal_name
+                    );
                     return sent;
+                }
                 if (
                     action == "sendDanmu"
                     && options.DanmakuOnlyWhenOffline
@@ -358,7 +364,13 @@ public class LiveFansMedalTaskRunner(
 
         var state = await EnterRoomAsync(cookie, medal, device, token);
         if (state is null)
+        {
+            logger.LogInformation(
+                "粉丝牌 {medal} 的直播间当前未开播，跳过挂机（B 站只在开播期间累计观看时长）",
+                medal.Medal.Medal_name
+            );
             return;
+        }
 
         var watched = 0;
         var sequence = 1;
@@ -382,7 +394,15 @@ public class LiveFansMedalTaskRunner(
                 repairs++;
                 var repaired = await EnterRoomAsync(cookie, medal, device, token);
                 if (repaired is null)
+                {
+                    logger.LogInformation(
+                        "粉丝牌 {medal} 的直播间已下播，停止挂机（已观看 {watched}/{target} 秒）",
+                        medal.Medal.Medal_name,
+                        watched,
+                        target
+                    );
                     return;
+                }
                 state = repaired;
                 sequence = 1;
                 continue;
