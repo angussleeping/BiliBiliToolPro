@@ -410,23 +410,5 @@ public interface IApiApi
         [Header("Cookie")] string ck
     );
 
-    /// <summary>
-    /// 开始观看剧集任务
-    /// NOTE: HTTP verb unknown — stub method without Refit verb attribute
-    /// </summary>
-    Task<BiliApiResponse<StartOgvWatchResponse>> StartOgvWatchAsync(
-        StartOgvWatchRequest request,
-        [Header("Cookie")] string ck
-    );
-
-    /// <summary>
-    /// 完成观看剧集任务
-    /// NOTE: HTTP verb unknown — stub method without Refit verb attribute
-    /// </summary>
-    Task<BiliApiResponse> CompleteOgvWatchAsync(
-        CompleteOgvWatchRequest request,
-        [Header("Cookie")] string ck
-    );
-
     #endregion
 }

@@ -1,6 +1,7 @@
 ## 4.2.7
 - 修复[大会员积分]：跳过「观看剧集」子任务，避免每日无效请求
 - 维护：Release 正文与 CHANGELOG 同源生成并全文中文化 (#7)
+- 维护：移除观剧任务的空壳接口与 DTO（`StartOgvWatchAsync` / `CompleteOgvWatchAsync`），避免被误当作可用能力
 - 维护：回写 CHANGELOG（4.2.6）(#6)
 - docs(readme): document the ogvwatchnew limitation
 ## 4.2.6
