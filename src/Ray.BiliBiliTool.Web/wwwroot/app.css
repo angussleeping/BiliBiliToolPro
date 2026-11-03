@@ -182,38 +182,25 @@ body {
     max-width: 100%;
 }
 
-.app-about-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
-    align-items: stretch;
+/* 单卡片居中：不再用两列网格，卡片保持可读宽度并水平居中 */
+.app-about {
+    display: flex;
+    justify-content: center;
 }
 
-.app-about-grid .app-about-card {
+.app-about .app-about-card {
     display: flex;
     flex-direction: column;
+    width: 100%;
+    max-width: 720px;
 }
 
-.app-about-grid .mud-card-content {
+.app-about .mud-card-content {
     flex: 1 1 auto;
 }
 
 .app-version {
     margin: 4px 0 0;
-}
-
-.donate-qr {
-    max-width: 360px;
-    width: 100%;
-    height: auto;
-    margin: 16px auto 0;
-    border-radius: 8px;
-}
-
-@media (max-width: 959.98px) {
-    .app-about-grid {
-        grid-template-columns: minmax(0, 1fr);
-    }
 }
 
 .app-shell .app-content .mud-table-container,
