@@ -32,8 +32,6 @@ namespace BlazingQuartz.Core
             services.AddScoped<IExecutionLogStore, ExecutionLogStore>();
             services.AddScoped<IExecutionLogService, ExecutionLogService>();
 
-            services.AddSingleton<IExecutionLogRawSqlProvider, BaseExecutionLogRawSqlProvider>();
-
             services.AddHostedService<SchedulerEventLoggingService>();
 
             return services;

@@ -22,6 +22,10 @@ public class AutoRecoverJob(
 ) : BaseJob<AutoRecoverJob>(logger, failureMonitor, securityOptions)
 {
     public static readonly JobKey Key = new(nameof(AutoRecoverJob), Constants.BiliJobGroup);
+
+    /// <summary>运行日志（bili_logs）保留天数：比执行记录短，它只是排障用的</summary>
+    private const int LogRetentionDays = 7;
+
     public static readonly TriggerKey TriggerKeyValue = new(
         $"{nameof(AutoRecoverJob)}.Interval.Trigger",
         Constants.BiliJobGroup
@@ -35,6 +39,9 @@ public class AutoRecoverJob(
             config.RecordRetentionDays,
             context.CancellationToken
         );
+
+        // bili_logs 由 Serilog 直写、自身没有轮转，靠这里兜底清理
+        await todayTaskService.CleanupExpiredLogsAsync(LogRetentionDays, context.CancellationToken);
 
         if (!config.IsEnable)
         {

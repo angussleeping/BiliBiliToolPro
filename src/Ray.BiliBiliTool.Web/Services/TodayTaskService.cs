@@ -507,6 +507,36 @@ public class TodayTaskService(
         }
     }
 
+    /// <inheritdoc />
+    public async Task CleanupExpiredLogsAsync(
+        int retentionDays,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            // Serilog 的 SQLite sink 按 UTC 存 timeStamp，也没有轮转参数，
+            // 这张表不主动清就会一直涨（实测 24 天 6.6 MB，占整库 83%）。
+            var cutoff = DateTime.UtcNow.AddDays(-Math.Clamp(retentionDays, 1, 90));
+            await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var deleted = await db
+                .BiliLogs.Where(log => log.Timestamp < cutoff)
+                .ExecuteDeleteAsync(cancellationToken);
+            if (deleted > 0)
+            {
+                logger.LogInformation(
+                    "已清理 {count} 条超过 {days} 天的运行日志",
+                    deleted,
+                    retentionDays
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "清理过期的运行日志失败");
+        }
+    }
+
     private static string Describe(TodayTaskItemState state) =>
         state switch
         {

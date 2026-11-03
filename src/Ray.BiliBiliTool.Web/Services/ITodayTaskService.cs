@@ -98,4 +98,12 @@ public interface ITodayTaskService
         int retentionDays,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// 清理超过保留天数的运行日志（<c>bili_logs</c>）。
+    ///
+    /// 这张表由 Serilog 直写、没有轮转策略，是数据库体积的主要来源（实测 24 天占 83%），
+    /// 一并挂在自动补做任务上顺手清，别再让它无限长。
+    /// </summary>
+    Task CleanupExpiredLogsAsync(int retentionDays, CancellationToken cancellationToken = default);
 }
