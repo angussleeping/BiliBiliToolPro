@@ -173,7 +173,7 @@ public class VipBigPointAppService(
         await DailyVipMallBuyMissionAsync(cancellationToken);
         await DailyAnimateTabMissionAsync(combine, ck, cancellationToken);
         await DailyFilmTabMissionAsync(combine, ck, cancellationToken);
-        await DailyOgvWatchMissionAsync(combine, ck, cancellationToken);
+        await DailyOgvWatchMissionAsync(cancellationToken);
         await DailyTvOdBuyMissionAsync(cancellationToken);
         await DailyDressBuyAmountMissionAsync(cancellationToken);
     }
@@ -251,19 +251,12 @@ public class VipBigPointAppService(
     }
 
     [TaskInterceptor("日常6：观看剧集", TaskLevel.Three, rethrowWhenException: false)]
-    private async Task DailyOgvWatchMissionAsync(
-        VipBigPointCombine combine,
-        BiliCookie ck,
-        CancellationToken cancellationToken = default
-    )
+    private Task DailyOgvWatchMissionAsync(CancellationToken cancellationToken = default)
     {
-        await vipBigPointDomainService.ReceiveAndCompleteAsync(
-            combine,
-            "日常任务",
-            "ogvwatchnew",
-            ck,
-            async (_, _) => await vipBigPointDomainService.CompleteV2Async("ogvwatchnew", ck)
-        );
+        // Completion requires the app-issued x-bili-ticket, so material/receive never returns
+        // task_id/token over plain HTTP. Kept as an explicit skip to avoid a daily failed request.
+        logger.LogInformation("需在 App 内真实观看 10 分钟，跳过（见 README 已知限制）");
+        return Task.CompletedTask;
     }
 
     [TaskInterceptor("日常7：购买影片", TaskLevel.Three, rethrowWhenException: false)]

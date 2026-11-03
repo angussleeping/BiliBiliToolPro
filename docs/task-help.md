@@ -24,7 +24,7 @@ The deployed application is the source for the actions performed by this build. 
 | Batch unfollow | `AccountDomainService.UnfollowBatched` | Named group, reverse-order candidate selection, count and retained UIDs |
 | Notification/recovery | `TaskFailureBatchMonitor`, `CookieTaskGuard`, `TaskRecoveryExecutor` | Daily cookie checks, per-account expiry reminder limit, scheduled-only failure summaries and recovery settings |
 
-Two easily misread settings were checked through their full call paths. `ChargeTaskOptions.ChargeComment` generates a default comment when unset, even though the domain method does not contain the random selection. `VipBigPointOptions.ViewBangumis` is referenced by an unused private legacy watching method. The active `ogvwatchnew` task uses `CompleteV2Async`, so the old season-ID input is displayed as a disabled legacy setting with its saved value retained.
+Two easily misread settings were checked through their full call paths. `ChargeTaskOptions.ChargeComment` generates a default comment when unset, even though the domain method does not contain the random selection. `VipBigPointOptions.ViewBangumis` is referenced by an unused private legacy watching method. The `ogvwatchnew` task is skipped outright since 4.2.7 because its completion step needs an app-issued `x-bili-ticket`, so the old season-ID input stays as a disabled legacy setting with its saved value retained.
 
 For batch unfollow, whitelisted candidates are skipped without selecting replacements. Descriptions therefore describe a maximum candidate count rather than promising exactly that many successful unfollows. The help does not execute transactions or platform tasks.
 

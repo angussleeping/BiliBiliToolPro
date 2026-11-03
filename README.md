@@ -72,17 +72,19 @@ BiliTool 通过 Bilibili 的接口定时执行各类任务。你可以使用 Web
 
 ### 已知限制：大会员积分「观看剧集内容」
 
-`VipBigPoint` 能自动完成该任务的**领取**，但**不能**自动完成上报，日志末尾会出现 `确认："失败"`。原因是 B 站把完成环节放在了 App 客户端专属接口上：
+`VipBigPoint` 的「日常6：观看剧集」自 **4.2.7** 起默认**跳过**，既不领取也不上报，避免每天产生一次注定失败的请求。其余 7 项日常任务不受影响。
+
+原因是 B 站把完成环节放在 App 客户端专属接口上，中间那步必须携带 App 端风控票据才会下发观看凭证：
 
 | 步骤 | 接口 | 现状 |
 | --- | --- | --- |
-| 领取 | `POST /pgc/activity/score/task/receive/v2` | 请求体带上 `build` 等客户端参数后正常受理（4.2.6 修复的正是这里） |
+| 领取 | `POST /pgc/activity/score/task/receive/v2` | 请求体带上 `build` 等客户端参数后正常受理（4.2.6 修复的正是这里）；4.2.7 起不再调用 |
 | 开始观看 | `POST /pgc/activity/deliver/material/receive` | 只对携带 `x-bili-ticket`（App 端风控票据）的请求下发 `watch_count_down_cfg`（含 `task_id` / `token` / 600 秒倒计时） |
 | 上报完成 | `POST /pgc/activity/deliver/task/complete` | 依赖上一步的 `task_id` / `token`，且只能成功一次 |
 
 即使带上完整 Cookie、`csrf`、`appkey`/`ts`/`sign` 与全套设备头（`buvid` / `fp_local` / `fp_remote` / `x-bili-mid`），第 2 步仍只返回空壳 `{"closeType":"close_win","container":[],"showTime":""}`，因此无法在服务端复现。该票据由 App 按设备指纹与行为向服务端申请，纯 HTTP 请求无法伪造。
 
-**补齐方式**：每天在手机 App 内任选一集番剧/国创/电影/电视剧/综艺/纪录片，连续观看满 10 分钟即可获得这 40 大积分。工具负责的领取步骤已经完成，无需额外操作。
+**如何拿到这 40 大积分**：在手机 App 的「会员中心 → 赚大积分」中手动领取「观看剧集内容」，任选一集番剧/国创/电影/电视剧/综艺/纪录片，连续观看满 10 分钟即可。由于工具不再代为领取，这一步需要你自己在 App 内点一次。
 
 ## 多账号
 
