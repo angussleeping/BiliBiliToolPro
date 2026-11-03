@@ -25,7 +25,7 @@ bash <(curl -sSL https://raw.githubusercontent.com/angussleeping/BiliBiliToolPro
 
 ```bash
 mkdir bili_tool_web && cd bili_tool_web
-wget https://raw.githubusercontent.com/angussleeping/BiliBiliToolPro/main/platforms/docker/sample/docker-compose.yml
+wget https://raw.githubusercontent.com/angussleeping/BiliBiliToolPro/main/platforms/docker/sample/compose.yaml
 docker compose up -d
 docker logs -f bili_tool_web
 ```
@@ -38,7 +38,7 @@ bili_tool_web/
 ├── config/
 │   └── BiliBiliTool.db
 ├── keys/
-└── docker-compose.yml
+└── compose.yaml
 ```
 
 ### Other commands

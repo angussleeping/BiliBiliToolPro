@@ -22,7 +22,7 @@ base_dir="${current_dir}/bili_tool_web"
 github_proxy=""
 github_branch="main"
 remote_repo="${BILI_REPO:-angussleeping/BiliBiliToolPro}"
-remote_compose_url="${github_proxy}https://raw.githubusercontent.com/${remote_repo}/refs/heads/${github_branch}/platforms/docker/sample/docker-compose.yml"
+remote_compose_url="${github_proxy}https://raw.githubusercontent.com/${remote_repo}/refs/heads/${github_branch}/platforms/docker/sample/compose.yaml"
 docker_img_name="${BILI_IMAGE:-ghcr.io/angussleeping/bili_tool_web}"
 container_name="bili_tool_web"
 
@@ -264,12 +264,13 @@ downloadResources() {
     say_info "开始下载资源"
 
     # docker compose
-    if [ ! -f "docker-compose.yml" ]; then
-        download "$remote_compose_url" ./docker-compose.yml
+    # 文件名用 compose.yaml（Compose V2 的官方推荐名），两类命令都能直接识别。
+    if [ ! -f "compose.yaml" ]; then
+        download "$remote_compose_url" ./compose.yaml
         # Point compose at the same image as docker pull so BILI_IMAGE takes effect.
         # 只替换 ghcr.io 的镜像行，避免误伤将来 compose 里新增的其他服务
-        sed "s|^\([[:space:]]*image:[[:space:]]*\)ghcr\.io/[^[:space:]]*|\1${docker_img_name}|" docker-compose.yml >docker-compose.yml.tmp
-        mv docker-compose.yml.tmp docker-compose.yml
+        sed "s|^\([[:space:]]*image:[[:space:]]*\)ghcr\.io/[^[:space:]]*|\1${docker_img_name}|" compose.yaml >compose.yaml.tmp
+        mv compose.yaml.tmp compose.yaml
     fi
 
     ls -l
@@ -285,7 +286,8 @@ runContainer() {
     {
         docker compose version && docker compose up -d
     } || {
-        docker-compose version && docker-compose up -d
+        # Compose V1 只自动识别 docker-compose.yml/.yaml，compose.yaml 必须显式 -f
+        docker-compose version && docker-compose -f compose.yaml up -d
     } || {
         docker run -d --name="${container_name}" \
             -p 22330:8080 \
