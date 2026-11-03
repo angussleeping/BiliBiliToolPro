@@ -1,4 +1,6 @@
 ## 4.2.9
+- 维护：Docker 示例 compose 文件改名为 compose.yaml
+- 维护：回写 CHANGELOG（4.2.9）(#13)
 - 文档：README 补充关于页界面差异
 - 重构：关于页移除赞助卡片，项目信息改为居中单卡
 - 文档：CHANGELOG 4.2.7 段移除重复条目
