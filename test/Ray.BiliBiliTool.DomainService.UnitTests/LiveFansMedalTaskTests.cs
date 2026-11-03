@@ -73,13 +73,50 @@ public class LiveFansMedalTaskTests
     }
 
     [Theory]
-    [InlineData("点赞若干次", "每日上限 0/10")]
-    [InlineData("点赞30次", "新的未知进度")]
-    [InlineData("点赞30次", "每日上限 0/100000")]
-    public void Planner_ChangedRequirementsAreReported(string title, string progress) =>
-        Assert.Throws<InvalidOperationException>(() =>
-            LiveFansMedalTaskPlanner.Plan(Tasks("like", title, progress), "like")
+    [InlineData("点赞若干次", "每日上限 0/10", 100)]
+    [InlineData("点赞30次", "新的未知进度", 30)]
+    [InlineData("点赞30次", "每日上限 0/100000", 30)]
+    public void Planner_UnparsableCopyFallsBackInsteadOfThrowing(
+        string title,
+        string progress,
+        int expected
+    )
+    {
+        var warnings = new List<string>();
+        var plan = LiveFansMedalTaskPlanner.Plan(
+            Tasks("like", title, progress),
+            "like",
+            warnings.Add
         );
+
+        Assert.Equal(expected, plan.Remaining);
+        Assert.NotEmpty(warnings);
+    }
+
+    [Fact]
+    public void Planner_DanmakuTaskWithoutQuantityStillPlansOneRound()
+    {
+        // 线上实测（4.2.x）：弹幕任务的 title 变成了不带数字的文案「发送弹幕」，
+        // 旧实现直接抛「无法读取粉丝牌任务要求」，导致 24 天里一条弹幕都没发出去。
+        var data = Tasks("sendDanmu", "发送弹幕", "每日上限 0/5");
+
+        var plan = LiveFansMedalTaskPlanner.Plan(data, "sendDanmu");
+
+        Assert.Equal(5, plan.Remaining);
+        Assert.Equal(1, plan.RoundSize);
+    }
+
+    [Fact]
+    public void Planner_WatchTaskWithoutQuantityFallsBackToOneMinuteRounds()
+    {
+        var plan = LiveFansMedalTaskPlanner.Plan(
+            Tasks("watchLive", "观看直播", "每日上限 4/5"),
+            "watchLive"
+        );
+
+        Assert.Equal(60, plan.RoundSize);
+        Assert.Equal(60, plan.Remaining);
+    }
 
     [Fact]
     public void Configuration_OldLevel20SwitchIsIgnoredAndBudgetsRemain()
@@ -317,6 +354,67 @@ public class LiveFansMedalTaskTests
         Assert.Empty(env.Heartbeats);
     }
 
+    [Fact]
+    public async Task Runner_ReentersRoomWhenHeartbeatIsRejected()
+    {
+        // 心跳被拒（1012002 time check failed）后继续拿旧 secret_key 重试只会继续失败，
+        // 必须重新进房换一组心跳参数，并且心跳序号从 1 重新开始。
+        var env = new Environment();
+        env.Options.HeartBeatNumber = 2;
+        env.HeartBeatCodes.Enqueue(1012002);
+
+        await env.Runner.RunAsync(env.Cookie, "watchLive");
+
+        Assert.Equal(2, env.Enters);
+        Assert.True(env.Heartbeats.Count >= 3);
+        Assert.Equal(
+            new[] { 1, 1, 2 },
+            env.Heartbeats.Take(3)
+                .Select(beat => JsonSerializer.Deserialize<long[]>(beat.Id)![2])
+                .Select(value => (int)value)
+        );
+    }
+
+    [Fact]
+    public async Task Runner_GivesUpAfterRepeatedHeartbeatRejections()
+    {
+        var env = new Environment();
+        env.Options.HeartBeatNumber = 2;
+        env.Options.HeartBeatSendGiveUpThreshold = 2;
+        for (var i = 0; i < 10; i++)
+            env.HeartBeatCodes.Enqueue(1012002);
+
+        var ex = await Assert.ThrowsAsync<BiliBusinessException>(() =>
+            env.Runner.RunAsync(env.Cookie, "watchLive")
+        );
+        Assert.Contains("1012002", ex.Message);
+    }
+
+    [Fact]
+    public async Task Runner_PartialMedalFailureDoesNotFailTheWholeTask()
+    {
+        var env = new Environment();
+        env.Panel = _ => new() { List = [Medal(20), Medal(60)] };
+        env.TaskData = (id, _) =>
+            id == 20
+                ? throw new BiliBusinessException("模拟单个房间异常")
+                : Tasks("like", "点赞30次", "每日上限 10/10");
+
+        await env.Runner.RunAsync(env.Cookie, "like");
+    }
+
+    [Fact]
+    public async Task Runner_AllMedalsFailingStillFailsTheTask()
+    {
+        var env = new Environment();
+        env.Panel = _ => new() { List = [Medal(20), Medal(60)] };
+        env.TaskData = (_, _) => throw new BiliBusinessException("模拟全部失败");
+
+        await Assert.ThrowsAsync<BiliBusinessException>(() =>
+            env.Runner.RunAsync(env.Cookie, "like")
+        );
+    }
+
     private static FansMedalPanelItem Medal(int level) =>
         new()
         {
@@ -425,6 +523,9 @@ public class LiveFansMedalTaskTests
         public LiveFansMedalTaskRunner Runner { get; }
         public List<int> Likes { get; } = [];
         public List<HeartBeatRequest> Heartbeats { get; } = [];
+
+        /// <summary>按顺序消费的心跳返回码，用完之后一律返回 0</summary>
+        public Queue<int> HeartBeatCodes { get; } = new();
         public List<TimeSpan> Delays { get; } = [];
         public int LiveStatus { get; set; } = 1;
         public int TaskCode { get; set; }
@@ -508,19 +609,25 @@ public class LiveFansMedalTaskTests
             Trace = Proxy.Create<ILiveTraceApi>(
                 (method, args) =>
                 {
+                    // 只有心跳会消费预置的返回码，进房永远成功
+                    var code = 0;
                     if (method == "EnterRoom")
                     {
                         Enters++;
                         EntryDevice = ((EnterRoomRequest)args[0]!).Device;
                     }
                     else if (method == "HeartBeat")
+                    {
                         Heartbeats.Add((HeartBeatRequest)args[0]!);
+                        if (HeartBeatCodes.Count > 0)
+                            code = HeartBeatCodes.Dequeue();
+                    }
                     else
                         throw new InvalidOperationException(method);
                     return Task.FromResult(
                         new BiliApiResponse<HeartBeatResponse>
                         {
-                            Code = 0,
+                            Code = code,
                             Data = new()
                             {
                                 Heartbeat_interval = 30,

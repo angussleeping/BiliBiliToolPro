@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Ray.BiliBiliTool.Agent;
 using Ray.BiliBiliTool.Agent.BiliBiliAgent.Dtos;
@@ -21,6 +22,37 @@ public class LiveFansMedalTaskRunner(
     private readonly Func<TimeSpan, CancellationToken, Task> _delay = delay ?? Task.Delay;
     private int _likesSent;
 
+    /// <summary>已告警过的降级点，避免每轮循环重复刷同一条日志</summary>
+    private readonly HashSet<string> _warned = [];
+
+    /// <summary>心跳被 B 站拒绝后最多重新进房几次（换一组 secret_key 再试）</summary>
+    private const int MaxHeartBeatRepairs = 3;
+
+    /// <summary>任务文案解析降级时的告警：同一粉丝牌同一原因每次运行只记一条</summary>
+    private LiveFansMedalPlan Plan(
+        ActivatedMedalResponse data,
+        string action,
+        string medal,
+        bool warn = true
+    ) =>
+        LiveFansMedalTaskPlanner.Plan(
+            data,
+            action,
+            warn ? FallbackPropagation(medal, action) : null
+        );
+
+    private Action<string> FallbackPropagation(string medal, string action) =>
+        message =>
+        {
+            if (_warned.Add($"{medal}|{action}|{message}"))
+                logger.LogWarning(
+                    "粉丝牌 {medal} 的 {action} 任务定义解析降级：{message}",
+                    medal,
+                    action,
+                    message
+                );
+        };
+
     public async Task RunAsync(BiliCookie cookie, string action, CancellationToken token = default)
     {
         var enabled = action switch
@@ -41,6 +73,7 @@ public class LiveFansMedalTaskRunner(
 
         var medals = await GetMedalsAsync(cookie, token);
         var failures = 0;
+        var reasons = new ConcurrentQueue<string>();
         // Limit concurrent watch sessions while retaining parallel watching.
         using var watchSlots = new SemaphoreSlim(8);
         async Task ExecuteAsync(FansMedalPanelItem medal)
@@ -49,7 +82,7 @@ public class LiveFansMedalTaskRunner(
             {
                 token.ThrowIfCancellationRequested();
                 var data = await GetTasksAsync(cookie, medal, token);
-                var plan = LiveFansMedalTaskPlanner.Plan(data, action);
+                var plan = Plan(data, action, medal.Medal.Medal_name);
                 var target = Math.Min(
                     plan.Remaining,
                     options.FollowDailyTaskLimit
@@ -89,13 +122,15 @@ public class LiveFansMedalTaskRunner(
             catch (Exception ex)
             {
                 Interlocked.Increment(ref failures);
+                var reason = ex is BiliBusinessException or InvalidOperationException
+                    ? ex.Message
+                    : ex.GetType().Name;
+                reasons.Enqueue($"{medal.Medal.Medal_name}: {reason}");
                 logger.LogError(
                     "粉丝牌 {medal} 的 {action} 任务失败：{reason}",
                     medal.Medal.Medal_name,
                     action,
-                    ex is BiliBusinessException or InvalidOperationException
-                        ? ex.Message
-                        : ex.GetType().Name
+                    reason
                 );
             }
         }
@@ -106,8 +141,27 @@ public class LiveFansMedalTaskRunner(
             foreach (var medal in medals)
                 await ExecuteAsync(medal);
 
-        if (failures > 0)
-            throw new BiliBusinessException($"{failures} 个粉丝牌的 {action} 任务执行失败");
+        // 单个粉丝牌失败不再让整条任务失败：B 站对不同房间的容忍度不一样（有的房间心跳
+        // 一直拿不到时长、有的灯牌任务文案在灰度），一个房间的问题不该拖垮其他房间的成果。
+        // 只有「全军覆没」才判整条任务失败，部分失败按警告留痕。
+        if (failures == 0)
+            return;
+
+        if (failures < medals.Count)
+        {
+            logger.LogWarning(
+                "{failed}/{total} 个粉丝牌的 {action} 任务失败，其余已完成，本次按部分成功处理：{reasons}",
+                failures,
+                medals.Count,
+                action,
+                string.Join("；", reasons.Take(3))
+            );
+            return;
+        }
+
+        throw new BiliBusinessException(
+            $"全部 {failures} 个粉丝牌的 {action} 任务执行失败：{string.Join("；", reasons.Take(3))}"
+        );
     }
 
     private async Task<List<FansMedalPanelItem>> GetMedalsAsync(
@@ -167,7 +221,7 @@ public class LiveFansMedalTaskRunner(
     {
         var sent = 0;
         var failures = 0;
-        var previous = LiveFansMedalTaskPlanner.Plan(data, action);
+        var previous = Plan(data, action, medal.Medal.Medal_name);
         while (sent < target && previous.Remaining > 0)
         {
             var roundTarget = Math.Min(
@@ -252,7 +306,7 @@ public class LiveFansMedalTaskRunner(
 
             var wasLighted = data.Is_lighted;
             data = await GetTasksAsync(cookie, medal, token);
-            var latest = LiveFansMedalTaskPlanner.Plan(data, action);
+            var latest = Plan(data, action, medal.Medal.Medal_name);
             LogProgress(medal, data, action);
             // A lighting task changes into a different daily task after lighting.
             if (!wasLighted && data.Is_lighted)
@@ -267,7 +321,7 @@ public class LiveFansMedalTaskRunner(
             {
                 await _delay(TimeSpan.FromSeconds(3), token);
                 data = await GetTasksAsync(cookie, medal, token);
-                latest = LiveFansMedalTaskPlanner.Plan(data, action);
+                latest = Plan(data, action, medal.Medal.Medal_name);
                 if (latest.Remaining >= previous.Remaining)
                     throw new BiliBusinessException("互动已发送，B 站任务进度尚未更新");
             }
@@ -276,6 +330,20 @@ public class LiveFansMedalTaskRunner(
         return sent;
     }
 
+    /// <summary>
+    /// 挂机看直播。
+    ///
+    /// <para>
+    /// 心跳（<c>/xlive/data-interface/v1/x25Kn/X</c>）会校验 <c>ts</c>/<c>ets</c> 的时间差，
+    /// 对不上时 B 站直接回 <c>1012002 time check failed</c>。所以心跳必须紧跟在 sleep 之后发出，
+    /// 中间不能插任何 HTTP 请求 —— 旧实现是先 sleep、再查一次直播间状态、最后才心跳，
+    /// 多出来的那一次往返正好把时间差顶出容差窗口，于是「时好时坏」。
+    /// </para>
+    /// <para>
+    /// 另外，一旦心跳被拒，继续拿旧的 <c>secret_key</c> 重试只会越错越多（时间差越拉越大），
+    /// 正确做法是重新进房换一组心跳参数。
+    /// </para>
+    /// </summary>
     private async Task WatchAsync(
         BiliCookie cookie,
         FansMedalPanelItem medal,
@@ -284,12 +352,165 @@ public class LiveFansMedalTaskRunner(
     )
     {
         var roomId = medal.Room_info.Room_id;
+        var uuid = Guid.NewGuid().ToString();
+        // device 里的 uuid 必须整场稳定，重进房也不能换
+        var device = $"[\"{cookie.LiveBuvid}\",\"{uuid}\"]";
+
+        var state = await EnterRoomAsync(cookie, medal, device, token);
+        if (state is null)
+            return;
+
+        var watched = 0;
+        var sequence = 1;
+        var failures = 0;
+        var repairs = 0;
+        var lastCheck = 0;
+        var lastCode = 0;
+        var lastRemaining = int.MaxValue;
+        var stalls = 0;
+        var giveUp = Math.Clamp(options.HeartBeatSendGiveUpThreshold, 1, 10);
+
+        while (watched < target)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (!IsUsableHeartBeat(state))
+            {
+                // 心跳参数不可用：重进房换一组，换不到就放弃这个房间
+                if (repairs >= MaxHeartBeatRepairs)
+                    throw new BiliBusinessException("直播观看任务返回了无效的心跳参数");
+                repairs++;
+                var repaired = await EnterRoomAsync(cookie, medal, device, token);
+                if (repaired is null)
+                    return;
+                state = repaired;
+                sequence = 1;
+                continue;
+            }
+
+            var interval = state.Heartbeat_interval;
+
+            // 房间是否还在播：放在 sleep 之前查，绝不能挡在心跳和 sleep 之间
+            var room = Require(await liveApi.GetLiveRoomInfo(roomId), "获取直播状态");
+            if (room.Live_Status != 1 || room.Parent_area_id <= 0)
+            {
+                logger.LogInformation(
+                    "粉丝牌 {medal} 的直播间已下播或分区信息不可用，停止挂机（已观看 {watched}/{target} 秒）",
+                    medal.Medal.Medal_name,
+                    watched,
+                    target
+                );
+                return;
+            }
+
+            await _delay(TimeSpan.FromSeconds(interval), token);
+
+            var response = await traceApi.HeartBeat(
+                new HeartBeatRequest(
+                    roomId,
+                    room.Parent_area_id,
+                    room.Area_id,
+                    sequence,
+                    cookie.LiveBuvid,
+                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                    state.Timestamp,
+                    userAgent,
+                    state.Secret_rule,
+                    state.Secret_key!,
+                    cookie.BiliJct,
+                    uuid,
+                    device,
+                    interval,
+                    medal.Medal.Target_id
+                ),
+                cookie.ToString()
+            );
+
+            if (response.Code != 0 || response.Data is null)
+            {
+                lastCode = response.Code;
+                failures++;
+                if (failures >= giveUp)
+                    throw new BiliBusinessException(
+                        $"直播观看心跳失败，错误码 {lastCode}（连续 {failures} 次）"
+                    );
+
+                if (repairs < MaxHeartBeatRepairs)
+                {
+                    repairs++;
+                    logger.LogWarning(
+                        "粉丝牌 {medal} 的心跳被 B 站拒绝（错误码 {code}），第 {n} 次重新进房刷新心跳参数",
+                        medal.Medal.Medal_name,
+                        lastCode,
+                        repairs
+                    );
+                    var repaired = await EnterRoomAsync(cookie, medal, device, token);
+                    if (repaired is null)
+                        return;
+                    state = repaired;
+                    sequence = 1;
+                }
+                continue;
+            }
+
+            state = response.Data;
+            failures = 0;
+            repairs = 0;
+            sequence++;
+            watched += interval;
+
+            if (watched - lastCheck < 60 && watched < target)
+                continue;
+
+            var data = await GetTasksAsync(cookie, medal, token);
+            var remaining = Plan(data, "watchLive", medal.Medal.Medal_name, warn: false).Remaining;
+            LogProgress(medal, data, "watchLive");
+            lastCheck = watched;
+            if (remaining == 0)
+                return;
+
+            if (remaining >= lastRemaining)
+            {
+                // 心跳返回成功、时长却没被计入：多半已经被风控静默丢弃，留一条线索便于以后排查
+                if (++stalls == 3)
+                    logger.LogWarning(
+                        "粉丝牌 {medal} 的心跳连续 3 次未被计入观看时长（当前 {progress}），继续挂机可能白跑",
+                        medal.Medal.Medal_name,
+                        data.Task_info.FirstOrDefault(item =>
+                            item.Jump_type == "watchLive"
+                        )?.Sub_title
+                    );
+            }
+            else
+            {
+                stalls = 0;
+            }
+            lastRemaining = remaining;
+
+            if (options.FollowDailyTaskLimit && watched >= target)
+            {
+                await _delay(TimeSpan.FromSeconds(3), token);
+                data = await GetTasksAsync(cookie, medal, token);
+                if (Plan(data, "watchLive", medal.Medal.Medal_name, warn: false).Remaining > 0)
+                    throw new BiliBusinessException("观看时长已达到目标，B 站任务尚未完成");
+            }
+        }
+    }
+
+    /// <summary>进房拿一组心跳参数；房间不在播（或是轮播）时返回 null</summary>
+    private async Task<HeartBeatResponse?> EnterRoomAsync(
+        BiliCookie cookie,
+        FansMedalPanelItem medal,
+        string device,
+        CancellationToken token
+    )
+    {
+        var roomId = medal.Room_info.Room_id;
         var room = Require(await liveApi.GetLiveRoomInfo(roomId), "获取直播状态");
         if (room.Live_Status != 1 || room.Parent_area_id <= 0)
-            return;
-        var uuid = Guid.NewGuid().ToString();
-        var device = $"[\"{cookie.LiveBuvid}\",\"{uuid}\"]";
-        var state = Require(
+            return null;
+
+        return Require(
             await traceApi.EnterRoom(
                 new EnterRoomRequest(
                     roomId,
@@ -306,71 +527,12 @@ public class LiveFansMedalTaskRunner(
             ),
             "进入直播间"
         );
-        var watched = 0;
-        var sequence = 1;
-        var failures = 0;
-        var lastCheck = 0;
-        while (watched < target)
-        {
-            if (
-                state.Heartbeat_interval <= 0
-                || state.Heartbeat_interval > 300
-                || string.IsNullOrEmpty(state.Secret_key)
-            )
-                throw new BiliBusinessException("直播观看任务返回了无效的心跳参数");
-            var interval = state.Heartbeat_interval;
-            await _delay(TimeSpan.FromSeconds(interval), token);
-            room = Require(await liveApi.GetLiveRoomInfo(roomId), "获取直播状态");
-            if (room.Live_Status != 1)
-                return;
-            var response = await traceApi.HeartBeat(
-                new HeartBeatRequest(
-                    roomId,
-                    room.Parent_area_id,
-                    room.Area_id,
-                    sequence,
-                    cookie.LiveBuvid,
-                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    state.Timestamp,
-                    userAgent,
-                    state.Secret_rule,
-                    state.Secret_key,
-                    cookie.BiliJct,
-                    uuid,
-                    device,
-                    interval,
-                    medal.Medal.Target_id
-                ),
-                cookie.ToString()
-            );
-            if (response.Code != 0 || response.Data is null)
-            {
-                if (++failures >= Math.Clamp(options.HeartBeatSendGiveUpThreshold, 1, 10))
-                    throw new BiliBusinessException($"直播观看心跳失败，错误码 {response.Code}");
-                continue;
-            }
-            state = response.Data;
-            failures = 0;
-            sequence++;
-            watched += interval;
-            if (watched - lastCheck >= 60 || watched >= target)
-            {
-                var data = await GetTasksAsync(cookie, medal, token);
-                var remaining = LiveFansMedalTaskPlanner.Plan(data, "watchLive").Remaining;
-                LogProgress(medal, data, "watchLive");
-                lastCheck = watched;
-                if (remaining == 0)
-                    return;
-                if (options.FollowDailyTaskLimit && watched >= target)
-                {
-                    await _delay(TimeSpan.FromSeconds(3), token);
-                    data = await GetTasksAsync(cookie, medal, token);
-                    if (LiveFansMedalTaskPlanner.Plan(data, "watchLive").Remaining > 0)
-                        throw new BiliBusinessException("观看时长已达到目标，B 站任务尚未完成");
-                }
-            }
-        }
     }
+
+    private static bool IsUsableHeartBeat(HeartBeatResponse state) =>
+        state.Heartbeat_interval > 0
+        && state.Heartbeat_interval <= 300
+        && !string.IsNullOrEmpty(state.Secret_key);
 
     private void LogProgress(FansMedalPanelItem medal, ActivatedMedalResponse data, string action)
     {
