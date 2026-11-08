@@ -27,7 +27,10 @@ public class AccountDomainService(
 {
     private readonly UnfollowBatchedTaskOptions _unfollowBatchedTaskOptions =
         unfollowBatchedTaskOptions.CurrentValue;
-    private readonly DailyTaskOptions _dailyTaskOptions = dailyTaskOptions.CurrentValue;
+
+    // Read on every access: these options come from the SQLite-backed config store and may
+    // change while the app runs, so a field snapshot makes two jobs of the same day disagree.
+    private readonly IOptionsMonitor<DailyTaskOptions> _dailyTaskOptionsMonitor = dailyTaskOptions;
 
     /// <summary>
     /// 登录
@@ -51,11 +54,16 @@ public class AccountDomainService(
 
         if (useInfo.Level_info?.Current_level < 6)
         {
+            UpgradeForecast forecast = UpgradeForecast.Calculate(
+                useInfo,
+                _dailyTaskOptionsMonitor.CurrentValue
+            );
             logger.LogInformation(
                 "【距升级Lv{0}】预计{1}天",
                 useInfo.Level_info.Current_level + 1,
-                CalculateUpgradeTime(useInfo)
+                forecast.Days
             );
+            logger.LogInformation("【预估依据】{0}", forecast.Describe());
         }
         else
         {
@@ -232,38 +240,6 @@ public class AccountDomainService(
     /// </summary>
     /// <param name="useInfo"></param>
     /// <returns>升级时间</returns>
-    public int CalculateUpgradeTime(UserInfo useInfo)
-    {
-        var level = useInfo.Level_info;
-        if (level is null || level.Current_level >= 6)
-            return 0;
-
-        decimal needExp = (decimal)level.GetNext_expLong() - level.Current_exp;
-        if (needExp <= 0)
-            return 0;
-
-        int dailyExp =
-            5 + (_dailyTaskOptions.IsWatchVideo ? 5 : 0) + (_dailyTaskOptions.IsShareVideo ? 5 : 0);
-        int coinLimit = Math.Clamp(_dailyTaskOptions.NumberOfCoins, 0, 5);
-        decimal availableCoins =
-            decimal.Floor(useInfo.Money ?? 0)
-            - Math.Max(0, _dailyTaskOptions.NumberOfProtectedCoins);
-
-        // Forecast one login coin per day, spending only above the protected balance.
-        decimal ExpAfter(int days) =>
-            (decimal)days * dailyExp
-            + 10 * Math.Min((decimal)days * coinLimit, Math.Max(0, availableCoins + days));
-
-        int low = 1;
-        int high = int.MaxValue;
-        while (low < high)
-        {
-            int middle = low + (high - low) / 2;
-            if (ExpAfter(middle) >= needExp)
-                high = middle;
-            else
-                low = middle + 1;
-        }
-        return low;
-    }
+    public int CalculateUpgradeTime(UserInfo useInfo) =>
+        UpgradeForecast.Calculate(useInfo, _dailyTaskOptionsMonitor.CurrentValue).Days;
 }

@@ -293,7 +293,7 @@ Sets the daily target. Each donation uses one coin because experience depends on
 | Accepted value | Integer `0`–`5` |
 | Default | `5` |
 
-`DailyTaskConfig__NumberOfProtectedCoins` additionally specifies how many coins to keep in reserve (`0` by default; a nonnegative integer). The current daily-task configuration also supports `DailyTaskConfig__DevicePlatform` (`android` by default, or `ios`) for client operations.
+`DailyTaskConfig__NumberOfProtectedCoins` additionally specifies how many coins to keep in reserve (`0` by default; a nonnegative integer). It also feeds the level-up forecast: only coins above the reserve can be donated, so a large reserve shortens the period covered by coin experience and increases the reported `【距升级Lv6】` day count. See [升级预估天数](../README.md#说明升级预估天数距升级lv6). The current daily-task configuration also supports `DailyTaskConfig__DevicePlatform` (`android` by default, or `ios`) for client operations.
 
 <a id="markdown-334-投币时是否同时点赞" name="334-投币时是否同时点赞"></a>
 #### 3.3.4. Like when donating a coin
