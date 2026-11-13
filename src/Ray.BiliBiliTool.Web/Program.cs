@@ -49,7 +49,12 @@ try
         .Services.AddRazorComponents()
         .AddInteractiveServerComponents()
         .AddInteractiveWebAssemblyComponents();
-    builder.Services.AddControllers();
+    // AddControllersWithViews, not AddControllers: AuthController carries
+    // [ValidateAntiForgeryToken], whose filter lives in MVC ViewFeatures and is only
+    // registered by the "WithViews" builder. With the plain overload the filter cannot
+    // be resolved and every POST /auth/login dies with a 500 before the password is
+    // even checked. The app has no Razor views, so nothing else changes.
+    builder.Services.AddControllersWithViews();
 
     // Persist DataProtection keys explicitly: the container points
     // Security__DataProtectionKeysDirectory at a mounted directory so the login-cookie

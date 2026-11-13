@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc.ViewFeatures.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Quartz;
@@ -34,6 +35,15 @@ public class WebStartupTests
         dbContext.Database.ProviderName.Should().Be("Microsoft.EntityFrameworkCore.Sqlite");
 
         scope.ServiceProvider.GetRequiredService<IAuthService>().Should().NotBeNull();
+
+        // AuthController is annotated with [ValidateAntiForgeryToken]; that filter lives in
+        // MVC ViewFeatures and is only registered by AddControllersWithViews. Resolving it
+        // here keeps a plain AddControllers() from silently turning every login into a 500.
+        scope
+            .ServiceProvider.GetRequiredService<ValidateAntiforgeryTokenAuthorizationFilter>()
+            .Should()
+            .NotBeNull();
+
         scope.ServiceProvider.GetRequiredService<ILoginPageStateFactory>().Should().NotBeNull();
         scope.ServiceProvider.GetRequiredService<IAdminPageWorkflow>().Should().NotBeNull();
         scope.ServiceProvider.GetRequiredService<ISchedulerPageWorkflow>().Should().NotBeNull();

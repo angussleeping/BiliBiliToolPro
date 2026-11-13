@@ -29,6 +29,7 @@ BiliTool 通过 Bilibili 的接口定时执行各类任务。你可以使用 Web
 > - 界面精简：关于页去掉上游的赞助卡片，项目信息改为居中单卡，赞助二维码图片不再随镜像与 Release 包分发
 > - 直播粉丝勋章容错：B 站任务文案改版时降级执行而不是整条失败、心跳被拒后重新进房换参数、单个粉丝牌失败不再拖垮整条任务
 > - 数据库自维护：执行历史保留 21 天、运行日志保留 7 天，超期自动清理（此前运行日志只增不减）
+> - 修复 4.3.3 之前的 Web 登录 500：登录接口带 antiforgery 校验，但 MVC 视图服务没注册，过滤器无法解析，提交登录必报「出错了」，密码从未被校验
 
 <p align="center">
   <img src="docs/imgs/web-index.png" alt="Web 面板首页" width="800">
@@ -51,6 +52,9 @@ BiliTool 通过 Bilibili 的接口定时执行各类任务。你可以使用 Web
 | 本地或服务器 | [下载 Release 包直接运行](docs/runInLocal.md) |
 
 配置项、环境变量和各任务的详细选项见 [配置说明](docs/configuration.md)；遇到问题先查 [常见问题](docs/questions.md)。
+
+> [!IMPORTANT]
+> 4.3.3 之前的镜像存在登录缺陷：提交登录后只显示「出错了 / 处理你的请求时发生了错误」，日志里是 `No service for type '...ValidateAntiforgeryTokenAuthorizationFilter' has been registered`。此时用户名密码都是对的，只是请求在进入校验前就崩了。更新镜像即可，不需要重建数据库或重置密码。
 
 ## 任务列表
 
