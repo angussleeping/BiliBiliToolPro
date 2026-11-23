@@ -34,10 +34,10 @@ public class MangaDomainService(
         {
             response = await mangaApi.ClockIn(_dailyTaskOptions.DevicePlatform, ck.ToString());
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            //ignore
-            //重复签到会报400异常,这里忽略掉
+            // 重复签到会报 400 异常；其他网络/接口异常也按已签到处理以免中断主流程
+            logger.LogDebug(ex, "漫画签到接口异常，按已签到处理");
             logger.LogInformation("【签到结果】失败");
             logger.LogInformation("【原因】今日已签到过，无法重复签到");
             return;
@@ -99,7 +99,7 @@ public class MangaDomainService(
         if (response.Code == 0 && response.Data is not null)
         {
             logger.LogInformation("【领取结果】成功");
-            logger.LogInformation($"【获取】{response.Data.Amount}张漫读劵");
+            logger.LogInformation("【获取】{amount}张漫读劵", response.Data.Amount);
         }
         else
         {

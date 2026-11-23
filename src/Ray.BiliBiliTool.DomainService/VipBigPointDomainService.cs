@@ -278,8 +278,7 @@ public class VipBigPointDomainService(
         }
         catch (Exception e)
         {
-            logger.LogError("领取任务异常");
-            logger.LogError(e.Message + re?.ToJsonStr());
+            logger.LogError(e, "领取任务异常：taskCode={taskCode}, response={re}", taskCode, re?.ToJsonStr());
         }
     }
     #endregion

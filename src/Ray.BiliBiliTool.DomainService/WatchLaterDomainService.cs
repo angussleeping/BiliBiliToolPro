@@ -400,17 +400,27 @@ public class WatchLaterDomainService(
         // 策略 A: 用 toview.progress >= duration 判"已看完"（B 站基本不会返回真实值）
         // 策略 B: 交叉历史记录（用历史接口的 progress 字段判断）
         var toDelete = new List<WatchLaterItem>();
+        var toDeleteAids = new HashSet<long>();
+
         var viewedByToview = items.Where(i => i.IsViewedByThreshold(viewedThreshold)).ToList();
-        toDelete.AddRange(viewedByToview);
+        var viewedByToviewAids = new HashSet<long>();
+        foreach (var v in viewedByToview)
+        {
+            toDelete.Add(v);
+            toDeleteAids.Add(v.Aid);
+            viewedByToviewAids.Add(v.Aid);
+        }
 
         var viewedByHistory = new List<WatchLaterItem>();
+        var viewedByHistoryAids = new HashSet<long>();
         if (useHistoryCrossCheck)
         {
             var historyMap = await GetHistoryMapAsync(ck, historyMaxPages, cancellationToken);
             viewedByHistory = FindViewedInHistory(items, historyMap, viewedThreshold);
             foreach (var v in viewedByHistory)
             {
-                if (!toDelete.Any(x => x.Aid == v.Aid))
+                viewedByHistoryAids.Add(v.Aid);
+                if (toDeleteAids.Add(v.Aid))
                     toDelete.Add(v);
             }
         }
@@ -422,7 +432,7 @@ public class WatchLaterDomainService(
             invalid = items.Where(i => !i.IsValid).ToList();
             foreach (var v in invalid)
             {
-                if (!toDelete.Any(x => x.Aid == v.Aid))
+                if (toDeleteAids.Add(v.Aid))
                     toDelete.Add(v);
             }
         }
@@ -471,9 +481,9 @@ public class WatchLaterDomainService(
                 break;
 
             string tag;
-            if (viewedByToview.Any(x => x.Aid == item.Aid))
+            if (viewedByToviewAids.Contains(item.Aid))
                 tag = "toview已看完";
-            else if (viewedByHistory.Any(x => x.Aid == item.Aid))
+            else if (viewedByHistoryAids.Contains(item.Aid))
                 tag = "历史已看完";
             else
                 tag = "失效";

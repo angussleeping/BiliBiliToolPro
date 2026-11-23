@@ -41,7 +41,7 @@ public abstract class BaseJob<TJob>(
         {
             try
             {
-                logger.LogInformation($"{typeof(TJob).Name} started.");
+                logger.LogInformation("{jobName} started.", typeof(TJob).Name);
                 await RandomSleepAsync(context, cancellationToken);
                 await DoExecuteAsync(context);
             }
@@ -51,7 +51,7 @@ public abstract class BaseJob<TJob>(
             }
             catch (Exception e)
             {
-                logger.LogError(e, e.Message);
+                logger.LogError(e, "Job failed: {jobName}", typeof(TJob).Name);
                 var taskKey = TaskFailureNotificationCatalog.TaskKeyForJob(typeof(TJob).Name);
                 if (
                     !TaskFailureNotificationScope.IsSuppressed
