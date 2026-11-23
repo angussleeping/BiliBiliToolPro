@@ -1,3 +1,12 @@
+## 4.3.5
+- 新增：稍后再看清理任务（WatchLaterCleanup）(#1251)
+- 修复[青龙]：Cookie 持久化失败时暴露真实错误，去掉误导性版本声明 (#1250)
+- 修复[平台]：Alpine 3.24+ 允许通过 apk 安装 .NET 10 (#1256)
+- 维护：IpHelper 从 sync-over-async 改为 async、复用 HttpClient、升级 HTTPS
+- 维护：WatchLaterDomainService 存在性检查从 O(n²) 改为 HashSet O(1)
+- 维护：多处 LogError/LogInformation 字符串插值改为结构化模板
+- 维护：catch(Exception) 裸 catch 补齐 ex 并记录 Debug 日志
+- 维护：回写 CHANGELOG（4.3.4）
 ## 4.3.4
 - 维护：回写 CHANGELOG（4.3.3）
 ## 4.3.3
